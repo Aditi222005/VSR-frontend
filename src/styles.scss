@@ -1,1 +1,181 @@
-/* You can add global styles to this file, and also import other style files */
+/* ============================================
+   StudyRoom — Global Styles & Design Tokens
+   ============================================ */
+
+// ── Color Tokens ──
+:root {
+  // Base palette — warm neutrals
+  --color-bg:        #FAF8F5;
+  --color-bg-alt:    #F2EFEB;
+  --color-surface:   #FFFFFF;
+  --color-border:    #E8E4DF;
+  --color-border-strong: #D8D3CC;
+  --color-text:      #1A1714;
+  --color-text-secondary: #6B6560;
+  --color-text-muted: #9C9590;
+
+  // Accent — a confident warm teal/sage
+  --color-accent:    #2D8A6E;
+  --color-accent-hover: #24735B;
+  --color-accent-light: #E8F5F0;
+  --color-accent-glow:  rgba(45, 138, 110, 0.25);
+
+  // CTA band
+  --color-cta-bg:    #1A1714;
+  --color-cta-text:  #FAF8F5;
+
+  // Timer
+  --color-timer:     #2D8A6E;
+  --color-timer-glow: rgba(45, 138, 110, 0.35);
+
+  // Designed card shadows — multi-stop for depth
+  --shadow-card:
+    0 0 0 1px var(--color-border),
+    0 1px 2px rgba(26, 23, 20, 0.04),
+    0 4px 12px rgba(26, 23, 20, 0.06),
+    0 12px 32px rgba(26, 23, 20, 0.06);
+  --shadow-card-hover:
+    0 0 0 1px var(--color-border-strong),
+    0 2px 4px rgba(26, 23, 20, 0.04),
+    0 8px 20px rgba(26, 23, 20, 0.08),
+    0 20px 48px rgba(26, 23, 20, 0.08);
+  --shadow-card-elevated:
+    0 0 0 1px var(--color-border),
+    0 2px 4px rgba(26, 23, 20, 0.03),
+    0 8px 24px rgba(26, 23, 20, 0.08),
+    0 24px 56px rgba(26, 23, 20, 0.10);
+
+  // Single-purpose shadows (kept for non-card elements)
+  --shadow-sm:  0 1px 3px rgba(26, 23, 20, 0.06);
+  --shadow-md:  0 4px 16px rgba(26, 23, 20, 0.08);
+  --shadow-lg:  0 8px 32px rgba(26, 23, 20, 0.10);
+  --shadow-lift: 0 12px 36px rgba(26, 23, 20, 0.12);
+
+  // Radii
+  --radius-sm:  8px;
+  --radius-md:  12px;
+  --radius-lg:  20px;
+  --radius-xl:  28px;
+  --radius-full: 9999px;
+
+  // Transitions
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
+
+  // Typography
+  --font-heading: 'DM Serif Display', Georgia, serif;
+  --font-body:    'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono:    'DM Mono', 'SF Mono', 'Fira Code', monospace;
+
+  // Layout
+  --max-width: 1200px;
+  --section-padding: 120px;
+  --section-padding-mobile: 72px;
+}
+
+// ── Reset & Base ──
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--color-text);
+  background: var(--color-bg);
+  overflow-x: hidden;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  background: none;
+}
+
+ul, ol {
+  list-style: none;
+}
+
+// ── Utilities ──
+.container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 24px;
+
+  @media (max-width: 768px) {
+    padding: 0 20px;
+  }
+}
+
+// ── Scroll Reveal Base (used by directive) ──
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity var(--duration-slow) var(--ease-out),
+              transform var(--duration-slow) var(--ease-out);
+
+  // Springy overshoot variant (default via directive)
+  &--spring {
+    transition-timing-function: var(--ease-spring);
+    transition-duration: 500ms;
+  }
+
+  // Pop / scale variant for icons
+  &--pop {
+    transform: translateY(16px) scale(0.85);
+
+    &.revealed {
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  &.revealed {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Stagger delays for children
+@for $i from 1 through 6 {
+  .scroll-reveal-delay-#{$i} {
+    transition-delay: #{$i * 100}ms;
+  }
+}
+
+// ── Scroll Progress Bar ──
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0%;
+  background: linear-gradient(90deg, var(--color-accent), #3DB88C);
+  z-index: 1001;
+  transition: none;
+  pointer-events: none;
+  border-radius: 0 2px 2px 0;
+}

@@ -1,0 +1,315 @@
+@import '../../landing/landing-base';
+
+.auth-page {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  overflow: hidden;
+  background: var(--color-bg);
+
+  &__mesh {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 60% 50% at 30% 30%, rgba(45, 138, 110, 0.05) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 60% at 70% 70%, rgba(232, 226, 218, 0.4) 0%, transparent 60%);
+  }
+}
+
+.auth-container {
+  width: 100%;
+  max-width: 440px;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+}
+
+.auth-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  user-select: none;
+  cursor: pointer;
+
+  &__icon {
+    font-size: 26px;
+    color: var(--color-accent);
+  }
+
+  &__text {
+    font-family: var(--font-heading);
+    font-size: 24px;
+    color: var(--color-text);
+    letter-spacing: -0.02em;
+  }
+}
+
+.auth-card {
+  @include card-surface;
+  width: 100%;
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  box-shadow: var(--shadow-card-elevated);
+
+  @include respond(mobile) {
+    padding: 32px 24px;
+  }
+
+  &__highlight {
+    position: absolute;
+    top: 0;
+    left: 16px;
+    right: 16px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), transparent);
+    pointer-events: none;
+  }
+
+  &__header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  &__title {
+    font-family: var(--font-heading);
+    font-size: 32px;
+    color: var(--color-text);
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+  }
+
+  &__subtitle {
+    font-size: 15px;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+  }
+}
+
+// Google login button style
+.btn-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 24px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--color-text);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--duration-fast) var(--ease-out);
+
+  &:hover:not(:disabled) {
+    background: var(--color-bg-alt);
+    border-color: var(--color-text-muted);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: var(--shadow-sm);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &__icon {
+    flex-shrink: 0;
+  }
+}
+
+// Divider
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 24px 0;
+  width: 100%;
+
+  &__line {
+    flex: 1;
+    height: 1px;
+    background: var(--color-border);
+  }
+
+  &__text {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-muted);
+  }
+}
+
+// Alert styling
+.auth-alert {
+  background: rgba(234, 67, 53, 0.08);
+  border: 1px solid rgba(234, 67, 53, 0.2);
+  color: #c93b2b;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 20px;
+  text-align: center;
+  width: 100%;
+}
+
+// Forms
+.auth-form {
+  width: 100%;
+}
+
+.form-group {
+  margin-bottom: 20px;
+  width: 100%;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  &__label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+  }
+
+  &__forgot {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-accent);
+    transition: color var(--duration-fast);
+
+    &:hover {
+      color: var(--color-accent-hover);
+    }
+  }
+
+  &__input {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-family: inherit;
+    font-size: 15px;
+    color: var(--color-text);
+    transition: all var(--duration-fast) var(--ease-out);
+
+    &::placeholder {
+      color: var(--color-text-muted);
+    }
+
+    &:focus {
+      outline: none;
+      border-color: var(--color-accent);
+      background: var(--color-surface);
+      box-shadow: 0 0 0 3px var(--color-accent-glow);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    &--password {
+      padding-right: 48px;
+    }
+  }
+}
+
+.input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  font-size: 16px;
+  padding: 4px;
+  line-height: 1;
+  transition: color var(--duration-fast);
+
+  &:hover {
+    color: var(--color-text-secondary);
+  }
+}
+
+.auth-submit {
+  margin-top: 8px;
+}
+
+.auth-switch {
+  text-align: center;
+  margin-top: 24px;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+
+  &__link {
+    font-weight: 600;
+    color: var(--color-accent);
+    margin-left: 4px;
+    transition: color var(--duration-fast);
+
+    &:hover {
+      color: var(--color-accent-hover);
+    }
+  }
+}
+
+// Back to home link
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  transition: all var(--duration-fast) var(--ease-out);
+
+  &:hover {
+    color: var(--color-text);
+    transform: translateX(-4px);
+  }
+
+  &__arrow {
+    transition: transform var(--duration-fast);
+  }
+}
+
+// Simple Loading Spinner
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

@@ -1,0 +1,318 @@
+<!-- ========== SCROLL PROGRESS BAR ========== -->
+<div class="scroll-progress" [style.width.%]="scrollProgress()"></div>
+
+<!-- ========== NAVBAR ========== -->
+<nav class="navbar" [class.scrolled]="navScrolled()" id="navbar">
+  <div class="navbar__inner container">
+    <!-- Logo -->
+    <a class="navbar__logo" (click)="scrollTo('hero')">
+      <span class="navbar__logo-icon">◈</span>
+      <span class="navbar__logo-text">StudyRoom</span>
+    </a>
+
+    <!-- Desktop nav -->
+    <div class="navbar__actions">
+      <a class="navbar__link" (click)="scrollTo('how-it-works')">How it works</a>
+      <a class="navbar__link" (click)="scrollTo('categories')">Rooms</a>
+      <button class="btn btn--ghost" id="login-btn" routerLink="/login">Log in</button>
+      <button class="btn btn--primary" id="get-started-nav" routerLink="/register">Get Started</button>
+    </div>
+
+    <!-- Mobile hamburger -->
+    <button
+      class="navbar__hamburger"
+      (click)="toggleMobileMenu()"
+      [attr.aria-expanded]="mobileMenuOpen()"
+      aria-label="Toggle menu"
+      id="mobile-menu-toggle"
+    >
+      <span class="navbar__hamburger-line" [class.open]="mobileMenuOpen()"></span>
+      <span class="navbar__hamburger-line" [class.open]="mobileMenuOpen()"></span>
+      <span class="navbar__hamburger-line" [class.open]="mobileMenuOpen()"></span>
+    </button>
+  </div>
+
+  <!-- Mobile menu -->
+  <div class="navbar__mobile-menu" [class.open]="mobileMenuOpen()">
+    <a class="navbar__mobile-link" (click)="scrollTo('how-it-works')">How it works</a>
+    <a class="navbar__mobile-link" (click)="scrollTo('categories')">Rooms</a>
+    <button class="btn btn--ghost btn--full" (click)="closeMobileMenu()" routerLink="/login">Log in</button>
+    <button class="btn btn--primary btn--full" (click)="closeMobileMenu()" routerLink="/register">Get Started</button>
+  </div>
+</nav>
+
+<!-- ========== HERO ========== -->
+<section class="hero" id="hero">
+  <!-- Animated mesh gradient background -->
+  <div class="hero__mesh"></div>
+
+  <div class="hero__inner container">
+    <div class="hero__content">
+      <h1 class="hero__headline">
+        Study alone,<br />
+        <span class="hero__headline-accent">
+          together.
+          <span class="hero__headline-underline"></span>
+        </span>
+      </h1>
+      <p class="hero__subtext">
+        Join a live virtual room with other focused people.
+        A shared timer, quiet presence, and the motivation of knowing
+        someone else is right there with you.
+      </p>
+      <div class="hero__ctas">
+        <button class="btn btn--primary btn--lg btn--shine" id="hero-cta-primary" routerLink="/register">
+          Join a room — it's free
+        </button>
+        <button
+          class="btn btn--secondary btn--lg"
+          id="hero-cta-secondary"
+          (click)="scrollTo('how-it-works')"
+        >
+          See how it works
+          <span class="btn__arrow">↓</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Live Room Card Mock -->
+    <div class="hero__visual">
+      <!-- Floating secondary toast card — layered behind -->
+      <div class="hero__toast-card">
+        <span class="hero__toast-icon">🔥</span>
+        <div class="hero__toast-text">
+          <span class="hero__toast-title">3-day streak!</span>
+          <span class="hero__toast-sub">Keep it going</span>
+        </div>
+      </div>
+
+      <div class="room-card">
+        <!-- Subtle inner highlight at top -->
+        <div class="room-card__highlight"></div>
+
+        <div class="room-card__header">
+          <span class="room-card__category">📝 Exam Prep</span>
+          <span class="room-card__live-badge">
+            <span class="room-card__live-dot">
+              <span class="room-card__live-ring"></span>
+            </span>
+            Live
+          </span>
+        </div>
+
+        <div class="room-card__timer-wrap">
+          <div class="room-card__timer">24:12</div>
+          <div class="room-card__timer-label">Focus session</div>
+        </div>
+
+        <div class="room-card__people">
+          <div class="room-card__avatars">
+            <div class="room-card__avatar room-card__avatar--1">A</div>
+            <div class="room-card__avatar room-card__avatar--2">M</div>
+            <div class="room-card__avatar room-card__avatar--3">R</div>
+            <div class="room-card__avatar room-card__avatar--4">K</div>
+          </div>
+          <span class="room-card__studying-label">
+            <span class="room-card__pulse"></span>
+            6 studying now
+          </span>
+        </div>
+      </div>
+
+      <!-- Session complete toast — peeking from other side -->
+      <div class="hero__complete-card">
+        <span class="hero__complete-check">✓</span>
+        <span class="hero__complete-text">Session complete</span>
+      </div>
+
+      <!-- Floating ambient particles — varied styles -->
+      <div [style.transform]="'translate(' + heroParallaxX() * 1.5 + 'px, ' + heroParallaxY() * 1.5 + 'px)'" style="position: absolute; inset: 0; pointer-events: none;">
+        <div class="hero__particle hero__particle--1"></div>
+      </div>
+      <div [style.transform]="'translate(' + heroParallaxX() * 0.8 + 'px, ' + heroParallaxY() * 0.8 + 'px)'" style="position: absolute; inset: 0; pointer-events: none;">
+        <div class="hero__particle hero__particle--2"></div>
+      </div>
+      <div [style.transform]="'translate(' + heroParallaxX() * 1.2 + 'px, ' + heroParallaxY() * 1.2 + 'px)'" style="position: absolute; inset: 0; pointer-events: none;">
+        <div class="hero__particle hero__particle--3"></div>
+      </div>
+      <div [style.transform]="'translate(' + heroParallaxX() * 0.6 + 'px, ' + heroParallaxY() * 0.6 + 'px)'" style="position: absolute; inset: 0; pointer-events: none;">
+        <div class="hero__particle hero__particle--4"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hero gradient overlay at bottom -->
+  <div class="hero__fade"></div>
+</section>
+
+<!-- ========== HOW IT WORKS ========== -->
+<section class="how-it-works" id="how-it-works">
+  <div class="container">
+    <div class="section-header" appScrollReveal>
+      <span class="section-label">How it works</span>
+      <h2 class="section-title">Three steps to focused studying</h2>
+    </div>
+
+    <div class="steps">
+      <!-- SVG connecting line between steps -->
+      <svg class="steps__connector" viewBox="0 0 900 4" preserveAspectRatio="none" aria-hidden="true">
+        <line
+          x1="150" y1="2" x2="750" y2="2"
+          stroke="var(--color-accent)"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-dasharray="600"
+          [attr.stroke-dashoffset]="600 - (600 * stepsLineProgress())"
+          style="transition: stroke-dashoffset 0.6s cubic-bezier(0.16, 1, 0.3, 1)"
+        />
+      </svg>
+
+      @for (step of steps; track step.number; let i = $index) {
+        <div class="step" appScrollReveal [revealDelay]="i + 1">
+          <div class="step__number-wrap">
+            <div class="step__number">{{ step.number }}</div>
+          </div>
+          <h3 class="step__title">{{ step.title }}</h3>
+          <p class="step__description">{{ step.description }}</p>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ========== ROOM CATEGORIES ========== -->
+<section class="categories" id="categories">
+  <div class="container">
+    <div class="section-header" appScrollReveal>
+      <span class="section-label">Browse rooms</span>
+      <h2 class="section-title">Find your focus zone</h2>
+      <p class="section-subtitle">
+        Public rooms organized by what you're studying — jump into one that fits.
+      </p>
+    </div>
+
+    <div class="categories__grid" appScrollReveal>
+      @for (cat of categories; track cat.name) {
+        <div class="category-card category-card--{{ cat.tint }}" id="category-{{ cat.name | lowercase }}">
+          <span class="category-card__icon">{{ cat.icon }}</span>
+          <h3 class="category-card__name">{{ cat.name }}</h3>
+          <span class="category-card__online">
+            <span class="category-card__dot"></span>
+            {{ cat.online }} online
+          </span>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ========== WHY IT WORKS ========== -->
+<section class="value-props" id="value-props">
+  <div class="container">
+    <div class="section-header" appScrollReveal>
+      <span class="section-label">Why it works</span>
+      <h2 class="section-title">Built for focus, not distraction</h2>
+    </div>
+
+    <div class="value-props__grid">
+      @for (prop of valueProps; track prop.title; let i = $index) {
+        <div class="value-card value-card--{{ prop.tint }}" appScrollReveal [revealDelay]="i + 1">
+          <div class="value-card__icon-wrap" appScrollReveal [revealPop]="true" [revealDelay]="i + 1">
+            <span class="value-card__icon">{{ prop.icon }}</span>
+          </div>
+          <h3 class="value-card__title">{{ prop.title }}</h3>
+          <p class="value-card__description">{{ prop.description }}</p>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ========== SOCIAL PROOF ========== -->
+<section class="social-proof" id="social-proof">
+  <div class="container">
+    <div class="social-proof__inner" appScrollReveal>
+      <p class="social-proof__label">Join students studying right now</p>
+      <div class="social-proof__stats">
+        <div class="stat">
+          <span class="stat__number">{{ counterSessions() | number }}+</span>
+          <span class="stat__label">Sessions completed</span>
+        </div>
+        <div class="stat__divider"></div>
+        <div class="stat">
+          <span class="stat__number">{{ counterStudents() | number }}+</span>
+          <span class="stat__label">Students</span>
+        </div>
+        <div class="stat__divider"></div>
+        <div class="stat">
+          <span class="stat__number">{{ formattedRating }}</span>
+          <span class="stat__label">Avg focus rating</span>
+        </div>
+      </div>
+      <p class="social-proof__note">
+        <!-- placeholder — swap with real numbers later -->
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ========== FINAL CTA ========== -->
+<section class="final-cta" id="final-cta">
+  <div class="container">
+    <div class="final-cta__inner" appScrollReveal>
+      <h2 class="final-cta__title">Your focus starts here.</h2>
+      <p class="final-cta__subtitle">
+        Stop studying alone. Join a room and feel the difference.
+      </p>
+      <button class="btn btn--primary btn--lg btn--glow btn--shine" id="final-cta-btn" routerLink="/register">
+        Get Started — it's free
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ========== FOOTER ========== -->
+<footer class="footer" id="footer">
+  <div class="container">
+    <div class="footer__inner">
+      <div class="footer__brand">
+        <a class="footer__logo">
+          <span class="navbar__logo-icon">◈</span>
+          <span class="navbar__logo-text">StudyRoom</span>
+        </a>
+        <p class="footer__tagline">Focus better, together.</p>
+      </div>
+
+      <div class="footer__columns">
+        <div class="footer__col">
+          <h4 class="footer__col-title">Product</h4>
+          <ul>
+            <li><a href="#">Rooms</a></li>
+            <li><a href="#">Pricing</a></li>
+            <li><a href="#">How it works</a></li>
+          </ul>
+        </div>
+        <div class="footer__col">
+          <h4 class="footer__col-title">Company</h4>
+          <ul>
+            <li><a href="#">About</a></li>
+            <li><a href="#">Blog</a></li>
+            <li><a href="#">Careers</a></li>
+          </ul>
+        </div>
+        <div class="footer__col">
+          <h4 class="footer__col-title">Legal</h4>
+          <ul>
+            <li><a href="#">Privacy</a></li>
+            <li><a href="#">Terms</a></li>
+            <li><a href="#">Cookies</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <p>&copy; 2026 StudyRoom. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
