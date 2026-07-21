@@ -1,0 +1,154 @@
+# StudyRoom App — 30% Roadmap (17 July → 2 Aug)
+
+**Team:** 4 members, all new to Spring Boot + Angular
+**Duration:** 16 days
+**Goal for this checkpoint:** Working Auth + Public Rooms (statically seeded) + Profile-based room suggestions.
+Timer/WebSocket, chat, dynamic room creation, and stats are **explicitly out of scope** for this 30% — they come after this checkpoint. Trying to include them now is the biggest risk to hitting the deadline.
+
+---
+
+## 1. Why this scope = 30%
+
+Realistic weight of the full project (from the original 8-week plan):
+
+| Module | Weight | In this sprint? |
+|---|---|---|
+| User (auth) | 10% | ✅ Yes |
+| Public Rooms (static, admin-seeded) | 12% | ✅ Yes |
+| Profile + basic recommendation | 8% | ✅ Yes |
+| Timer (WebSocket) | 20% | ❌ Next phase |
+| Presence | 8% | ❌ Next phase |
+| Chat | 12% | ❌ Next phase |
+| Dynamic room creation | 10% | ❌ Next phase |
+| Stats/streaks | 10% | ❌ Next phase |
+| Hardening/deploy | 10% | ❌ Next phase |
+
+Auth + Rooms + Recommendation ≈ 30%. This is a good checkpoint because it's a **complete, demoable vertical slice** — a visitor can register, log in, see 7-8 rooms, and get ones relevant to them suggested first. Nothing half-built.
+
+---
+
+## 2. Team split (4 people, pair-and-rotate)
+
+Since everyone is learning simultaneously, don't split "backend person" vs "frontend person" permanently — everyone needs both skills by the end. But for these 16 days, assign primary ownership so nobody is blocked waiting on someone else:
+
+| Person | Primary (this sprint) | Secondary (helps when free) |
+|---|---|---|
+| A | Backend: Auth/Security module | Frontend: login/register screens |
+| B | Backend: Room + seeding + recommendation logic | Testing in Postman, DB schema |
+| C | Frontend: Auth screens, routing, AuthGuard, interceptor | Backend: DTOs/validation |
+| D | Frontend: Room dashboard, room card, profile screen | UI polish, deployment/setup docs |
+
+Rule: **A and C work in lockstep on Auth (backend/frontend pair). B and D work in lockstep on Rooms.** Merge into one app once both slices work independently.
+
+---
+
+## 3. Environment setup (Day 1 — do this together as a group call, not solo)
+
+1. Install: JDK 17+, Maven, Node.js LTS, Angular CLI (`npm i -g @angular/cli`), Postman, MySQL (or Postgres) locally, IntelliJ/VS Code.
+2. Backend skeleton: [Spring Initializr](https://start.spring.io) → dependencies: `Spring Web`, `Spring Data JPA`, `Spring Security`, `MySQL Driver`, `Validation`, `Lombok`.
+3. Frontend skeleton: `ng new studyroom-frontend --routing --style=scss`
+4. Create one shared GitHub repo with two folders: `/backend`, `/frontend`. Set up branch protection: no direct pushes to `main`, everyone works in feature branches (`feature/auth-backend`, `feature/room-frontend`, etc.), PR + 1 review before merge.
+5. Agree on DB name and connection string now so nobody wastes a day on mismatched configs.
+
+---
+
+## 4. Module 1 — User / Auth (Days 2–6)
+
+### Backend (Person A)
+
+**Entities & layers, in build order:**
+
+1. `User` entity — `id, name, email (unique), password (hashed), role (USER/ADMIN), studyPreference (String, for recommendation later), createdAt`.
+2. `UserRepository extends JpaRepository<User, Long>` with `findByEmail`.
+3. `SecurityConfig` — `SecurityFilterChain` bean: permit `/api/auth/**`, secure everything else; disable CSRF (stateless API); configure CORS to allow `http://localhost:4200`.
+4. `JwtUtil` — generate token (subject = email, expiry ~24h), validate token, extract claims. Use a library like `jjwt`.
+5. `JwtAuthFilter extends OncePerRequestFilter` — reads `Authorization: Bearer <token>` header, validates, sets `SecurityContextHolder`.
+6. `CustomUserDetailsService implements UserDetailsService` — loads user by email for Spring Security.
+7. `AuthController`:
+   - `POST /api/auth/register` → validate DTO, hash password with `BCryptPasswordEncoder`, save user, return success.
+   - `POST /api/auth/login` → authenticate via `AuthenticationManager`, on success generate JWT, return `{ token, name, role }`.
+8. DTOs: `RegisterRequest`, `LoginRequest`, `AuthResponse` — never return the `User` entity directly (don't leak the password hash).
+
+**Order matters:** get registration fully working and testable in Postman *before* writing the JWT filter. Test flow: register → check row in DB with hashed password → login → get token → hit a dummy protected `/api/test/secure` endpoint with the token in Postman.
+
+### Frontend (Person C)
+
+1. `AuthService` (`src/app/services/auth.service.ts`) — `register()`, `login()` call the backend via `HttpClient`; on login success, store the JWT (in-memory service property + `localStorage` for persistence across refresh) and decode/store user role.
+2. `environment.ts` — set `apiUrl: 'http://localhost:8080/api'`. Keep all HTTP calls pointed at this, not hardcoded URLs.
+3. Components: `RegisterComponent`, `LoginComponent` — reactive forms (`FormBuilder`, `Validators.required`, `Validators.email`, min password length), call `AuthService`, show inline error messages from backend response.
+4. `AuthGuard` (`CanActivateFn`) — blocks `/dashboard` and `/rooms` routes if no token.
+5. `AuthInterceptor` (`HttpInterceptorFn`) — attaches `Authorization: Bearer <token>` to every outgoing request automatically. Register it in `app.config.ts` under `provideHttpClient(withInterceptors([authInterceptor]))`.
+6. Routing (`app.routes.ts`): `/login`, `/register` public; `/dashboard`, `/rooms/:id`, `/profile` behind `AuthGuard`.
+
+### How frontend and backend actually connect (this is the part that confuses beginners most)
+
+- Backend runs on `localhost:8080`, frontend on `localhost:4200` — different origins, so **CORS must be configured on the backend** (`@CrossOrigin` or global config in `SecurityConfig`) or every call will fail silently with a CORS error in the browser console.
+- Angular's `HttpClient` sends JSON; Spring's `@RestController` with `@RequestBody` deserializes it into your DTO automatically — just make sure field names match exactly (or use `@JsonProperty`).
+- The token is **not a session** — Spring Security here is fully stateless. Every request must carry the JWT; there's no server-side "logged in" memory. This is why the interceptor is mandatory, not optional.
+- Test the contract in Postman first, always. Once Postman gets a 200 with the right JSON shape, wiring Angular to it is just plumbing.
+
+**Checkpoint (end of Day 6):** A user can register, log in from the Angular UI, get redirected to a dashboard, and refreshing the page keeps them logged in.
+
+---
+
+## 5. Module 2 — Public Rooms, statically seeded (Days 6–12)
+
+This is your "admin panel" for now: **skip building real admin CRUD UI in this sprint.** Seed the 7–8 rooms directly via a data script. A real admin panel is Phase 2 work — building it now would eat days you don't have, for a feature only you will ever use before Aug 2.
+
+### Backend (Person B)
+
+1. `Room` entity — `id, name, description, category (e.g. "Coding", "Exam Prep", "Reading"), capacity, imageUrl, isPublic (boolean, default true)`.
+2. `RoomParticipant` entity — `id, room (FK), user (FK), joinedAt` — tracks who's using which room (needed even before real-time features, for "X people currently studying here" counts and for recommendation history).
+3. Seed data: create `src/main/resources/data.sql` with 7–8 `INSERT INTO room ...` rows, or a `CommandLineRunner` bean that inserts them on startup if the table is empty (safer — won't duplicate on restart). Pick categories that map to realistic `studyPreference` values from the User entity (e.g. "Coding", "UPSC/Exam Prep", "Reading", "Design", "General Focus").
+4. `RoomController`:
+   - `GET /api/rooms` → all public rooms.
+   - `GET /api/rooms/{id}` → room detail.
+   - `POST /api/rooms/{id}/join` → creates a `RoomParticipant` row (auth required — pull user from `SecurityContextHolder`).
+5. `RoomRepository`, `RoomParticipantRepository`.
+
+### Recommendation logic (Person B, once rooms are working)
+
+Keep it rule-based — no ML needed for 30%, and it's honest to say so to your guide:
+
+- Add `studyPreference` field to `User` (set during registration or profile edit).
+- `GET /api/rooms/recommended` → simple query: rooms where `category = user.studyPreference`, sorted first; rest of the public rooms after. This is one `RoomRepository` method plus a small service-layer sort — not a separate "AI module." Be upfront in your report that this is milestone 1 of recommendation, and collaborative/ML-based recommendation is a stretch goal for later.
+
+### Frontend (Person D)
+
+1. `RoomService` — `getAllRooms()`, `getRecommendedRooms()`, `getRoomById()`, `joinRoom()`.
+2. `DashboardComponent` — two sections: "Recommended for you" (from `/rooms/recommended`), then "All rooms" grid.
+3. `RoomCardComponent` — name, category badge, participant count, "Join" button.
+4. `RoomDetailComponent` — room description + join action + (placeholder for timer, to be built next phase).
+5. `ProfileComponent` — lets the user set/edit `studyPreference` from a dropdown of the same categories used in seeded rooms, so the recommendation loop actually works end-to-end.
+
+**Checkpoint (end of Day 12):** Logged-in user sees a dashboard with recommended rooms first (based on their profile), can browse all 7–8 rooms, and can join one.
+
+---
+
+## 6. Days 13–16 — Integration, polish, guide prep
+
+- Day 13: Merge Auth branch + Rooms branch into one working app. This always takes longer than expected — budget a full day.
+- Day 14: Bug pass — test the full flow as a brand-new visitor: register → set profile → see recommendations → join a room. Fix CORS/token edge cases (expired token, empty states, validation messages).
+- Day 15: Basic styling pass (don't over-invest here yet — function over polish for a 30% checkpoint) + write your progress report/slides.
+- Day 16: Buffer day. Something will break; this day exists for that.
+
+---
+
+## 7. Weekly guide updates — suggested format
+
+Send a short update (not a wall of text) every week, e.g.:
+
+> **Week of [date] — StudyRoom App**
+> - Done: [e.g. "Auth module complete — register/login with JWT, tested end-to-end from Angular UI"]
+> - In progress: [e.g. "Static public rooms + profile-based recommendation"]
+> - Blocked/risk: [anything genuinely stuck on]
+> - Next week: [what's planned]
+> - Demo: [link to repo / short screen recording if possible]
+
+Recording a 60-second screen capture each week of what's clickable is worth more to a guide than a status paragraph — it proves the 30% is real, working software, not just code that compiles.
+
+---
+
+## 8. What comes right after this (so the team knows the shape of the next sprint)
+
+Once this checkpoint is done, the next block (from your original plan) is: WebSocket/STOMP setup → server-authoritative Timer → Presence (reuses the same STOMP config) → Chat (gated by timer state) → dynamic room creation → stats. Worth mentioning in your report as the roadmap for the remaining 70%, so your guide sees this checkpoint as one deliberate slice of a larger plan rather than a scope change.
