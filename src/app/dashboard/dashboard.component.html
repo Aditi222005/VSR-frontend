@@ -1,29 +1,11 @@
 <div class="dashboard-shell">
-  <!-- Ambient Background Mesh -->
-  <div class="bg-mesh" aria-hidden="true">
-    <div class="bg-mesh__orb bg-mesh__orb--1"></div>
-    <div class="bg-mesh__orb bg-mesh__orb--2"></div>
-    <div class="bg-mesh__orb bg-mesh__orb--3"></div>
-  </div>
-
   <!-- Top Bar (Logged-in Shell) -->
   <header class="topbar">
     <div class="container topbar__inner">
       <!-- Logo / Wordmark -->
       <div class="topbar__brand" routerLink="/dashboard">
-        <div class="topbar__logo-wrap">
-          <span class="topbar__logo-icon">🏫</span>
-        </div>
+        <span class="topbar__logo-icon">🏫</span>
         <span class="topbar__logo-text">StudyRoom</span>
-      </div>
-
-      <!-- Center Search (desktop) -->
-      <div class="topbar__search-wrap">
-        <div class="topbar__search">
-          <span class="topbar__search-icon">🔍</span>
-          <input type="text" class="topbar__search-input" placeholder="Search rooms…" readonly />
-          <span class="topbar__search-kbd">⌘K</span>
-        </div>
       </div>
 
       <!-- User Profile & Dropdown -->
@@ -31,41 +13,23 @@
         <div class="topbar__user-menu">
           <!-- Demo Preference Toggle helper -->
           <button (click)="toggleMockPreference()" class="btn-demo-pref" title="Demo Toggle: Set / Clear Study Preference">
-            <span class="btn-demo-pref__icon">🎯</span>
-            <span>{{ currentUser()?.studyPreference || 'Set Focus' }}</span>
+            <span>Mock Preference: {{ currentUser()?.studyPreference || 'None' }}</span>
             <span class="btn-demo-pref__dot" [class.btn-demo-pref__dot--active]="currentUser()?.studyPreference"></span>
           </button>
 
-          <!-- Notification Bell -->
-          <button class="topbar__icon-btn" title="Notifications">
-            <span class="topbar__icon-btn__icon">🔔</span>
-            <span class="topbar__icon-btn__badge">3</span>
-          </button>
-
           <button class="topbar__profile-trigger" (click)="toggleDropdown($event)">
+            <span class="topbar__username">{{ currentUser()?.name }}</span>
             <div class="topbar__avatar">
               {{ getUserInitials() }}
             </div>
-            <span class="topbar__username">{{ currentUser()?.name }}</span>
-            <span class="topbar__caret" [class.topbar__caret--open]="dropdownOpen()">▼</span>
+            <span class="topbar__caret">▼</span>
           </button>
 
           <!-- Dropdown menu -->
           @if (dropdownOpen()) {
             <div class="dropdown-menu" (click)="$event.stopPropagation()">
-              <div class="dropdown-header">
-                <div class="dropdown-header__avatar">{{ getUserInitials() }}</div>
-                <div>
-                  <p class="dropdown-header__name">{{ currentUser()?.name }}</p>
-                  <p class="dropdown-header__role">Student</p>
-                </div>
-              </div>
-              <hr class="dropdown-divider" />
               <a routerLink="/profile" class="dropdown-item" (click)="closeDropdown()">
                 <span class="dropdown-item__icon">👤</span> Profile
-              </a>
-              <a routerLink="/settings" class="dropdown-item" (click)="closeDropdown()">
-                <span class="dropdown-item__icon">⚙️</span> Settings
               </a>
               <hr class="dropdown-divider" />
               <button class="dropdown-item dropdown-item--logout" (click)="logout()">
@@ -80,61 +44,15 @@
 
   <!-- Main Content Area -->
   <main class="dashboard-main container">
-
     <!-- Greeting Header -->
     <header class="greeting-header" appScrollReveal [revealDelay]="1" [revealSpring]="true">
-      <div class="greeting-header__eyebrow">
-        <span class="greeting-header__status-dot"></span>
-        <span>{{ getTimeGreeting() }} — {{ getTodayFormatted() }}</span>
-      </div>
-      <h1 class="greeting-header__title">
-        Welcome back, <span class="greeting-header__name-gradient">{{ currentUser()?.name || 'Student' }}</span>
-      </h1>
+      <h1 class="greeting-header__title">Welcome back, {{ currentUser()?.name || 'Student' }}.</h1>
       <p class="greeting-header__subtext">Here's what's happening right now in your study spaces.</p>
     </header>
 
-    <!-- Stats Strip -->
-    <div class="stats-strip" appScrollReveal [revealDelay]="2" [revealSpring]="true">
-      <div class="stat-card">
-        <div class="stat-card__icon stat-card__icon--rooms">🚀</div>
-        <div class="stat-card__body">
-          <p class="stat-card__value">{{ rooms().length }}</p>
-          <p class="stat-card__label">Active Rooms</p>
-        </div>
-        <div class="stat-card__trend stat-card__trend--up">↑ 4</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-card__icon stat-card__icon--users">👥</div>
-        <div class="stat-card__body">
-          <p class="stat-card__value">{{ getTotalOnline() }}</p>
-          <p class="stat-card__label">Students Online</p>
-        </div>
-        <div class="stat-card__trend stat-card__trend--up">↑ 12</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-card__icon stat-card__icon--streak">🔥</div>
-        <div class="stat-card__body">
-          <p class="stat-card__value">7</p>
-          <p class="stat-card__label">Day Streak</p>
-        </div>
-        <div class="stat-card__trend stat-card__trend--neutral">—</div>
-      </div>
-      <div class="stat-card stat-card--cta">
-        <div class="stat-card__icon stat-card__icon--new">✨</div>
-        <div class="stat-card__body">
-          <p class="stat-card__value">Create</p>
-          <p class="stat-card__label">Start a new room</p>
-        </div>
-        <span class="stat-card__arrow">→</span>
-      </div>
-    </div>
-
     <!-- Recommended for You Section -->
-    <section class="dashboard-section" appScrollReveal [revealDelay]="3" [revealSpring]="true">
+    <section class="dashboard-section" appScrollReveal [revealDelay]="2" [revealSpring]="true">
       <div class="section-heading">
-        <div class="section-heading__label">
-          <span class="section-label-dot"></span>Personalized
-        </div>
         <h2 class="section-heading__title">✨ Recommended for you</h2>
         <p class="section-heading__subtitle">Personalized picks based on your preferred study topics.</p>
       </div>
@@ -153,7 +71,6 @@
       } @else {
         <!-- Callout Prompt Card when preference is empty -->
         <div class="preference-prompt">
-          <div class="preference-prompt__glow"></div>
           <div class="preference-prompt__icon">✨</div>
           <div class="preference-prompt__content">
             <h3 class="preference-prompt__title">Get personalized recommendations</h3>
@@ -161,10 +78,10 @@
           </div>
           <div class="preference-prompt__actions">
             <button (click)="toggleMockPreference()" class="btn btn--primary btn--shine btn-prompt-set">
-              🎯 Set Focus to Coding
+              Set Focus to Coding
             </button>
             <a routerLink="/profile" class="btn btn--secondary btn-prompt-profile">
-              Customize preferences →
+              Set focus area →
             </a>
           </div>
         </div>
@@ -172,25 +89,21 @@
     </section>
 
     <!-- All Rooms Section -->
-    <section class="dashboard-section all-rooms-section" appScrollReveal [revealDelay]="4" [revealSpring]="true">
+    <section class="dashboard-section all-rooms-section" appScrollReveal [revealDelay]="3" [revealSpring]="true">
       <div class="section-heading section-heading--spaced">
-        <div class="section-heading__label">
-          <span class="section-label-dot"></span>Browse All
-        </div>
         <h2 class="section-heading__title">All Study Rooms</h2>
         <p class="section-heading__subtitle">Find a room that matches your vibe and join others studying live.</p>
       </div>
 
       <!-- Filter Chips -->
       <div class="filter-bar">
-        @for (category of categoriesWithIcons; track category.name) {
+        @for (category of categories; track category) {
           <button
             class="filter-chip"
-            [class.filter-chip--active]="activeFilter() === category.name"
-            (click)="setFilter(category.name)"
+            [class.filter-chip--active]="activeFilter() === category"
+            (click)="setFilter(category)"
           >
-            <span class="filter-chip__icon">{{ category.icon }}</span>
-            <span>{{ category.name }}</span>
+            {{ category }}
           </button>
         }
       </div>
@@ -215,9 +128,9 @@
           <!-- Friendly Empty State -->
           <div class="empty-state">
             <div class="empty-state__icon">🔍</div>
-            <h3 class="empty-state__title">No rooms in "{{ activeFilter() }}"</h3>
+            <h3 class="empty-state__title">No rooms found in "{{ activeFilter() }}"</h3>
             <p class="empty-state__description">
-              Looks like there are no active rooms in this category right now. Try another category or check back later!
+              Looks like there are no active rooms in this category right now. You can try selecting another category or check back later!
             </p>
             <button (click)="setFilter('All')" class="btn btn--primary btn--shine">
               View All Rooms

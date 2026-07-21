@@ -23,15 +23,6 @@ export class DashboardComponent implements OnInit {
   dropdownOpen = signal(false);
   categories = ['All', 'Coding', 'Exam Prep', 'Reading', 'Design', 'General Focus'];
 
-  categoriesWithIcons = [
-    { name: 'All', icon: '🌐' },
-    { name: 'Coding', icon: '💻' },
-    { name: 'Exam Prep', icon: '📚' },
-    { name: 'Reading', icon: '📖' },
-    { name: 'Design', icon: '🎨' },
-    { name: 'General Focus', icon: '🎯' },
-  ];
-
   // Signals from services
   currentUser = this.authService.currentUser;
   rooms = this.roomService.rooms;
@@ -66,28 +57,6 @@ export class DashboardComponent implements OnInit {
       return (parts[0][0] + parts[1][0]).toUpperCase();
     }
     return user.name.substring(0, 2).toUpperCase();
-  }
-
-  // Time-aware greeting
-  getTimeGreeting(): string {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
-  }
-
-  // Formatted today's date
-  getTodayFormatted(): string {
-    return new Date().toLocaleDateString('en-US', {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric',
-    });
-  }
-
-  // Total online participants
-  getTotalOnline(): number {
-    return this.rooms().reduce((sum, room) => sum + room.currentParticipants, 0);
   }
 
   toggleDropdown(event: Event): void {
