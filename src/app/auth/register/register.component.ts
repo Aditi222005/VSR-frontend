@@ -65,7 +65,7 @@ export class RegisterComponent {
     this.isLoading.set(true);
     setTimeout(() => {
       this.isLoading.set(false);
-      this.router.navigate(['/']);
+      this.router.navigate(['/dashboard']);
     }, 1000);
   }
 }

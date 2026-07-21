@@ -1,0 +1,40 @@
+<div class="room-card" [ngClass]="getCategoryTintClass(room.category)">
+  <!-- Inner Highlight for layered depth -->
+  <div class="room-card__highlight"></div>
+
+  <!-- Recommended Badge -->
+  @if (isRecommended) {
+    <div class="room-card__recommended-badge">
+      <span>✨ Recommended</span>
+    </div>
+  }
+
+  <!-- Header: Category & Live Indicator -->
+  <div class="room-card__header">
+    <span class="badge" [ngClass]="getCategoryClass(room.category)">
+      {{ room.category }}
+    </span>
+    
+    <div class="room-card__live-indicator">
+      <div class="room-card__pulse-dot">
+        <div class="room-card__pulse-ring"></div>
+      </div>
+      <span class="room-card__live-text">
+        <span class="room-card__online-count">{{ room.currentParticipants }}</span> / {{ room.capacity }} online
+      </span>
+    </div>
+  </div>
+
+  <!-- Body: Name & Description -->
+  <div class="room-card__body">
+    <h3 class="room-card__title">{{ room.name }}</h3>
+    <p class="room-card__description">{{ room.description }}</p>
+  </div>
+
+  <!-- Action Footer -->
+  <div class="room-card__footer">
+    <button (click)="joinRoom($event)" class="btn btn--primary btn--shine btn--full">
+      Join Room
+    </button>
+  </div>
+</div>

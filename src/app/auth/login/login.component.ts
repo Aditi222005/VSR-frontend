@@ -38,7 +38,7 @@ export class LoginComponent {
     setTimeout(() => {
       this.isLoading.set(false);
       // Redirect to home/dashboard or landing for demo
-      this.router.navigate(['/']);
+      this.router.navigate(['/dashboard']);
     }, 1200);
   }
 
@@ -46,7 +46,7 @@ export class LoginComponent {
     this.isLoading.set(true);
     setTimeout(() => {
       this.isLoading.set(false);
-      this.router.navigate(['/']);
+      this.router.navigate(['/dashboard']);
     }, 1000);
   }
 }
