@@ -2,6 +2,7 @@ import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-register',
@@ -11,19 +12,17 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './register.component.scss',
 })
 export class RegisterComponent {
-  // Signals for form values
   name = signal('');
   username = signal('');
   email = signal('');
   mobile = signal('');
   password = signal('');
 
-  // UI state signals
   showPassword = signal(false);
   isLoading = signal(false);
   errorMessage = signal('');
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private authService: AuthService) {}
 
   togglePasswordVisibility(): void {
     this.showPassword.update((val) => !val);
@@ -32,7 +31,6 @@ export class RegisterComponent {
   onSubmit(event: Event): void {
     event.preventDefault();
 
-    // Basic required validations
     if (
       !this.name() ||
       !this.username() ||
@@ -44,7 +42,6 @@ export class RegisterComponent {
       return;
     }
 
-    // Simple email format check
     if (!this.email().includes('@')) {
       this.errorMessage.set('Please enter a valid email address.');
       return;
@@ -53,19 +50,25 @@ export class RegisterComponent {
     this.isLoading.set(true);
     this.errorMessage.set('');
 
-    // Simulate registration redirect after 1.5s
-    setTimeout(() => {
-      this.isLoading.set(false);
-      // Redirect to home/login
-      this.router.navigate(['/login']);
-    }, 1500);
+    this.authService.register({
+      name: this.name(),
+      username: this.username(),
+      email: this.email(),
+      mobile: this.mobile(),
+      password: this.password(),
+    }).subscribe({
+      next: () => {
+        this.isLoading.set(false);
+        this.router.navigate(['/login']);
+      },
+      error: (err) => {
+        this.isLoading.set(false);
+        this.errorMessage.set(err?.error?.message || 'Registration failed. Try again.');
+      },
+    });
   }
 
   loginWithGoogle(): void {
-    this.isLoading.set(true);
-    setTimeout(() => {
-      this.isLoading.set(false);
-      this.router.navigate(['/dashboard']);
-    }, 1000);
+    this.errorMessage.set('Google login is not available yet.');
   }
 }

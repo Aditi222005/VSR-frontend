@@ -2,6 +2,7 @@ import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -11,14 +12,13 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './login.component.scss',
 })
 export class LoginComponent {
-  // Signals for form values and UI states
   emailOrUsername = signal('');
   password = signal('');
   showPassword = signal(false);
   isLoading = signal(false);
   errorMessage = signal('');
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private authService: AuthService) {}
 
   togglePasswordVisibility(): void {
     this.showPassword.update((val) => !val);
@@ -34,19 +34,20 @@ export class LoginComponent {
     this.isLoading.set(true);
     this.errorMessage.set('');
 
-    // Simulate login redirect after 1.2s
-    setTimeout(() => {
-      this.isLoading.set(false);
-      // Redirect to home/dashboard or landing for demo
-      this.router.navigate(['/dashboard']);
-    }, 1200);
+    this.authService.login(this.emailOrUsername(), this.password()).subscribe({
+      next: () => {
+        this.isLoading.set(false);
+        this.router.navigate(['/dashboard']);
+      },
+      error: (err) => {
+        this.isLoading.set(false);
+        this.errorMessage.set(err?.error?.message || 'Invalid email/username or password.');
+      },
+    });
   }
 
   loginWithGoogle(): void {
-    this.isLoading.set(true);
-    setTimeout(() => {
-      this.isLoading.set(false);
-      this.router.navigate(['/dashboard']);
-    }, 1000);
+    // OAuth not implemented yet — placeholder
+    this.errorMessage.set('Google login is not available yet.');
   }
 }
