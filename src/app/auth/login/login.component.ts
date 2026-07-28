@@ -1,6 +1,6 @@
-import { Component, signal } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
 
@@ -11,14 +11,29 @@ import { AuthService } from '../../core/services/auth.service';
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   emailOrUsername = signal('');
   password = signal('');
   showPassword = signal(false);
   isLoading = signal(false);
   errorMessage = signal('');
 
-  constructor(private router: Router, private authService: AuthService) {}
+  constructor(
+    private router: Router,
+    private route: ActivatedRoute,
+    private authService: AuthService
+  ) {}
+
+  ngOnInit(): void {
+    const token = this.route.snapshot.queryParamMap.get('token');
+    if (token) {
+      const name = this.route.snapshot.queryParamMap.get('name');
+      const email = this.route.snapshot.queryParamMap.get('email');
+      const role = this.route.snapshot.queryParamMap.get('role');
+      this.authService.setSession(token, name, email, role);
+      this.router.navigate(['/dashboard'], { replaceUrl: true });
+    }
+  }
 
   togglePasswordVisibility(): void {
     this.showPassword.update((val) => !val);
@@ -47,7 +62,7 @@ export class LoginComponent {
   }
 
   loginWithGoogle(): void {
-    // OAuth not implemented yet — placeholder
-    this.errorMessage.set('Google login is not available yet.');
+    window.location.href =
+      'http://localhost:8080/oauth2/authorization/google';
   }
 }

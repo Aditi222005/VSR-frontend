@@ -13,7 +13,8 @@ import {
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser, ViewportScroller } from '@angular/common';
 import { ScrollRevealDirective } from '../shared/directives/scroll-reveal.directive';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute, Router } from '@angular/router';
+import { AuthService } from '../core/services/auth.service';
 
 @Component({
   selector: 'app-landing',
@@ -109,10 +110,24 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     @Inject(PLATFORM_ID) private platformId: object,
     private viewportScroller: ViewportScroller,
-    private ngZone: NgZone
+    private ngZone: NgZone,
+    private route: ActivatedRoute,
+    private router: Router,
+    private authService: AuthService
   ) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      const token = this.route.snapshot.queryParamMap.get('token');
+      if (token) {
+        const name = this.route.snapshot.queryParamMap.get('name');
+        const email = this.route.snapshot.queryParamMap.get('email');
+        const role = this.route.snapshot.queryParamMap.get('role');
+        this.authService.setSession(token, name, email, role);
+        this.router.navigate(['/dashboard'], { replaceUrl: true });
+      }
+    }
+  }
 
   ngAfterViewInit(): void {
     if (!isPlatformBrowser(this.platformId)) return;

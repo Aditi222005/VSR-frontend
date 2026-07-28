@@ -42,9 +42,8 @@ export class DashboardComponent implements OnInit {
   constructor() {}
 
   ngOnInit(): void {
-    // If not logged in, auto log in for demo purposes (or redirect)
-    if (!this.currentUser()) {
-      this.authService.login('Alex Johnson', 'alex.johnson@example.com');
+    if (!this.authService.isLoggedIn()) {
+      this.router.navigate(['/login']);
     }
   }
 
