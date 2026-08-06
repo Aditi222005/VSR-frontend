@@ -1,8 +1,8 @@
-import { Component, OnInit, signal, computed, HostListener, inject } from '@angular/core';
+import { Component, OnInit, signal, HostListener, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../core/services/auth.service';
-import { RoomService, Room } from '../core/services/room.service';
+import { RoomService } from '../core/services/room.service';
 import { RoomCardComponent } from '../shared/components/room-card/room-card.component';
 import { ScrollRevealDirective } from '../shared/directives/scroll-reveal.directive';
 
@@ -21,23 +21,11 @@ export class DashboardComponent implements OnInit {
 
   // Signals
   dropdownOpen = signal(false);
-  categories = ['All', 'Coding', 'Exam Prep', 'Reading', 'Design', 'General Focus'];
 
   // Signals from services
   currentUser = this.authService.currentUser;
   rooms = this.roomService.rooms;
-  filteredRooms = this.roomService.filteredRooms;
-  activeFilter = this.roomService.activeFilter;
   isLoading = this.roomService.isLoading;
-
-  // Computed signal for recommended rooms
-  recommendedRooms = computed(() => {
-    const user = this.currentUser();
-    if (!user || !user.studyPreference) {
-      return [];
-    }
-    return this.roomService.getRecommendedRooms(user.studyPreference);
-  });
 
   constructor() {}
 
@@ -45,9 +33,9 @@ export class DashboardComponent implements OnInit {
     if (!this.authService.isLoggedIn()) {
       this.router.navigate(['/login']);
     }
+    this.roomService.loadRooms();
   }
 
-  // Get user's initials for the avatar circle
   getUserInitials(): string {
     const user = this.currentUser();
     if (!user) return 'U';
@@ -73,21 +61,8 @@ export class DashboardComponent implements OnInit {
     this.closeDropdown();
   }
 
-  setFilter(category: string): void {
-    this.roomService.setFilter(category);
-  }
-
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);
-  }
-
-  // Demo helper: Toggle preference to see dynamic signal updates
-  toggleMockPreference(): void {
-    const user = this.currentUser();
-    if (user) {
-      const newPref = user.studyPreference ? null : 'Coding';
-      this.authService.updateStudyPreference(newPref);
-    }
   }
 }

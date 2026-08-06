@@ -1,4 +1,4 @@
-<div class="room-card" [ngClass]="getCategoryTintClass(room.category)">
+<div class="room-card" [ngClass]="getRoomTypeClass(room.roomType)">
   <!-- Inner Highlight for layered depth -->
   <div class="room-card__highlight"></div>
 
@@ -11,8 +11,8 @@
 
   <!-- Header: Category & Live Indicator -->
   <div class="room-card__header">
-    <span class="badge" [ngClass]="getCategoryClass(room.category)">
-      {{ room.category }}
+    <span class="badge" [ngClass]="getBadgeClass(room.roomType)">
+      {{ room.roomType }}
     </span>
     
     <div class="room-card__live-indicator">
@@ -20,7 +20,7 @@
         <div class="room-card__pulse-ring"></div>
       </div>
       <span class="room-card__live-text">
-        <span class="room-card__online-count">{{ room.currentParticipants }}</span> / {{ room.capacity }} online
+        <span class="room-card__capacity">{{ room.capacity }} seats</span>
       </span>
     </div>
   </div>
@@ -33,8 +33,14 @@
 
   <!-- Action Footer -->
   <div class="room-card__footer">
-    <button (click)="joinRoom($event)" class="btn btn--primary btn--shine btn--full">
-      Join Room
+    <button (click)="joinRoom($event)" class="btn btn--primary btn--shine btn--full"
+            [disabled]="isJoining()"
+            [class.btn--loading]="isJoining()">
+      {{ isJoining() ? 'Joining…' : 'Join Room' }}
     </button>
+
+    @if (errorMessage()) {
+      <p class="room-card__error">{{ errorMessage() }}</p>
+    }
   </div>
 </div>

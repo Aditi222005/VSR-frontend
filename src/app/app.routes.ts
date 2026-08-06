@@ -38,4 +38,12 @@ export const routes: Routes = [
       import('./dashboard/dashboard.component')
         .then((m) => m.DashboardComponent),
   },
+
+  {
+    path: 'rooms/:id',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./rooms/room/room.component')
+        .then((m) => m.RoomComponent),
+  },
 ];

@@ -1,0 +1,22 @@
+<div class="notes">
+
+  <div class="notes__toolbar">
+    <span class="notes__hint">Auto-saved locally</span>
+    @if (saved()) {
+      <span class="notes__saved">✓ Saved</span>
+    }
+    <button class="notes__clear" (click)="clearNotes()" title="Clear notes">✕ Clear</button>
+  </div>
+
+  <textarea
+    class="notes__textarea"
+    [(ngModel)]="content"
+    (input)="onInput()"
+    placeholder="Jot down your notes here…&#10;&#10;They're saved automatically and persist&#10;across page refreshes."
+  ></textarea>
+
+  <div class="notes__footer">
+    {{ content.length }} characters
+  </div>
+
+</div>

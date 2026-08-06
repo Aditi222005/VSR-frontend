@@ -11,12 +11,6 @@
       <!-- User Profile & Dropdown -->
       @if (currentUser()) {
         <div class="topbar__user-menu">
-          <!-- Demo Preference Toggle helper -->
-          <button (click)="toggleMockPreference()" class="btn-demo-pref" title="Demo Toggle: Set / Clear Study Preference">
-            <span>Mock Preference: {{ currentUser()?.studyPreference || 'None' }}</span>
-            <span class="btn-demo-pref__dot" [class.btn-demo-pref__dot--active]="currentUser()?.studyPreference"></span>
-          </button>
-
           <button class="topbar__profile-trigger" (click)="toggleDropdown($event)">
             <span class="topbar__username">{{ currentUser()?.name }}</span>
             <div class="topbar__avatar">
@@ -50,65 +44,16 @@
       <p class="greeting-header__subtext">Here's what's happening right now in your study spaces.</p>
     </header>
 
-    <!-- Recommended for You Section -->
-    <section class="dashboard-section" appScrollReveal [revealDelay]="2" [revealSpring]="true">
-      <div class="section-heading">
-        <h2 class="section-heading__title">✨ Recommended for you</h2>
-        <p class="section-heading__subtitle">Personalized picks based on your preferred study topics.</p>
-      </div>
 
-      @if (currentUser()?.studyPreference) {
-        <!-- Horizontally Scrollable Row -->
-        <div class="recommended-scroll">
-          <div class="recommended-track">
-            @for (room of recommendedRooms(); track room.id) {
-              <div class="recommended-item">
-                <app-room-card [room]="room" [isRecommended]="true"></app-room-card>
-              </div>
-            }
-          </div>
-        </div>
-      } @else {
-        <!-- Callout Prompt Card when preference is empty -->
-        <div class="preference-prompt">
-          <div class="preference-prompt__icon">✨</div>
-          <div class="preference-prompt__content">
-            <h3 class="preference-prompt__title">Get personalized recommendations</h3>
-            <p class="preference-prompt__text">Set your focus area to see study rooms tailored to what you are learning right now.</p>
-          </div>
-          <div class="preference-prompt__actions">
-            <button (click)="toggleMockPreference()" class="btn btn--primary btn--shine btn-prompt-set">
-              Set Focus to Coding
-            </button>
-            <a routerLink="/profile" class="btn btn--secondary btn-prompt-profile">
-              Set focus area →
-            </a>
-          </div>
-        </div>
-      }
-    </section>
 
     <!-- All Rooms Section -->
-    <section class="dashboard-section all-rooms-section" appScrollReveal [revealDelay]="3" [revealSpring]="true">
+    <section class="dashboard-section all-rooms-section" appScrollReveal [revealDelay]="2" [revealSpring]="true">
       <div class="section-heading section-heading--spaced">
         <h2 class="section-heading__title">All Study Rooms</h2>
         <p class="section-heading__subtitle">Find a room that matches your vibe and join others studying live.</p>
       </div>
 
-      <!-- Filter Chips -->
-      <div class="filter-bar">
-        @for (category of categories; track category) {
-          <button
-            class="filter-chip"
-            [class.filter-chip--active]="activeFilter() === category"
-            (click)="setFilter(category)"
-          >
-            {{ category }}
-          </button>
-        }
-      </div>
-
-      <!-- Loading State (if service is loading) -->
+      <!-- Loading State -->
       @if (isLoading()) {
         <div class="loading-state">
           <div class="spinner"></div>
@@ -116,25 +61,22 @@
         </div>
       } @else {
         <!-- Rooms Grid -->
-        @if (filteredRooms().length > 0) {
+        @if (rooms().length > 0) {
           <div class="rooms-grid">
-            @for (room of filteredRooms(); track room.id) {
+            @for (room of rooms(); track room.id) {
               <div class="grid-item">
                 <app-room-card [room]="room"></app-room-card>
               </div>
             }
           </div>
         } @else {
-          <!-- Friendly Empty State -->
+          <!-- Empty State -->
           <div class="empty-state">
             <div class="empty-state__icon">🔍</div>
-            <h3 class="empty-state__title">No rooms found in "{{ activeFilter() }}"</h3>
+            <h3 class="empty-state__title">No rooms available</h3>
             <p class="empty-state__description">
-              Looks like there are no active rooms in this category right now. You can try selecting another category or check back later!
+              There are no active study rooms right now. Check back later!
             </p>
-            <button (click)="setFilter('All')" class="btn btn--primary btn--shine">
-              View All Rooms
-            </button>
           </div>
         }
       }

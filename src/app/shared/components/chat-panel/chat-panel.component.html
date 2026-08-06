@@ -1,0 +1,36 @@
+<div class="chat">
+
+  <!-- Message list -->
+  <div class="chat__messages" #messageList>
+    @if (messages().length === 0) {
+      <div class="chat__empty">
+        <span class="chat__empty-icon">💬</span>
+        <p>No messages yet. Say hello!</p>
+      </div>
+    }
+    @for (msg of messages(); track msg.timestamp + msg.username) {
+      <div class="chat__msg" [class.chat__msg--own]="isOwnMessage(msg)">
+        <div class="chat__msg-meta">
+          <span class="chat__msg-author">{{ msg.username }}</span>
+          <span class="chat__msg-time">{{ formatTime(msg.timestamp) }}</span>
+        </div>
+        <div class="chat__msg-bubble">{{ msg.content }}</div>
+      </div>
+    }
+  </div>
+
+  <!-- Input -->
+  <div class="chat__composer">
+    <textarea
+      class="chat__input"
+      [(ngModel)]="draftMessage"
+      (keydown)="onKeydown($event)"
+      placeholder="Type a message… (Enter to send)"
+      rows="1"
+    ></textarea>
+    <button class="chat__send" (click)="sendMessage()" [disabled]="!draftMessage.trim()">
+      ➤
+    </button>
+  </div>
+
+</div>

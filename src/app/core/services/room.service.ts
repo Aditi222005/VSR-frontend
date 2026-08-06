@@ -1,118 +1,65 @@
-import { Injectable, signal, computed } from '@angular/core';
-
-export interface Room {
-  id: string;
-  name: string;
-  description: string;
-  category: 'Coding' | 'Exam Prep' | 'Reading' | 'Design' | 'General Focus';
-  capacity: number;
-  currentParticipants: number;
-}
+import { Injectable, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import { Room } from '../models/room.model';
+import { JoinRoomResponse } from '../models/join-room-response.model';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class RoomService {
-  // Mock rooms list
-  private roomsSignal = signal<Room[]>([
-    {
-      id: 'room-1',
-      name: 'TypeScript Wizards',
-      description: 'Deep dive into advanced TypeScript types and generic patterns. Quiet working session.',
-      category: 'Coding',
-      capacity: 15,
-      currentParticipants: 8,
-    },
-    {
-      id: 'room-2',
-      name: 'Algorithm Prep & LeetCode',
-      description: 'Solving daily challenges and preparing for technical interviews together.',
-      category: 'Coding',
-      capacity: 20,
-      currentParticipants: 12,
-    },
-    {
-      id: 'room-3',
-      name: 'MCAT Study Group',
-      description: 'Silent study and active recall session for medical school aspirants.',
-      category: 'Exam Prep',
-      capacity: 10,
-      currentParticipants: 6,
-    },
-    {
-      id: 'room-4',
-      name: 'Bar Exam Grind',
-      description: 'Heavy reading and essay drafting. Absolute silence requested.',
-      category: 'Exam Prep',
-      capacity: 12,
-      currentParticipants: 9,
-    },
-    {
-      id: 'room-5',
-      name: 'Deep Work: Classic Literature',
-      description: 'Reading classic novels, philosophy, or articles. Focus on reading comprehension.',
-      category: 'Reading',
-      capacity: 8,
-      currentParticipants: 4,
-    },
-    {
-      id: 'room-6',
-      name: 'UI/UX Design Studio',
-      description: 'Figma sketching, component creation, and visual design feedback.',
-      category: 'Design',
-      capacity: 10,
-      currentParticipants: 3,
-    },
-    {
-      id: 'room-7',
-      name: 'Late Night Pomodoro',
-      description: '50-minute work sessions with 10-minute breaks. Perfect for all tasks.',
-      category: 'General Focus',
-      capacity: 30,
-      currentParticipants: 18,
-    },
-    {
-      id: 'room-8',
-      name: 'Morning Routine & Coffee',
-      description: 'Get your day started with planning and light focus tasks.',
-      category: 'General Focus',
-      capacity: 25,
-      currentParticipants: 11,
-    },
-  ]);
 
-  // Loading state
-  private loadingSignal = signal<boolean>(false);
-  isLoading = this.loadingSignal.asReadonly();
+  private apiUrl = `${environment.apiUrl}/rooms`;
 
-  // Filter state
-  private filterSignal = signal<string>('All');
-  activeFilter = this.filterSignal.asReadonly();
+  constructor(private http: HttpClient) { }
 
-  // All rooms exposed
+  private roomsSignal = signal<Room[]>([]);
   rooms = this.roomsSignal.asReadonly();
 
-  // Filtered rooms computed automatically based on activeFilter signal
-  filteredRooms = computed(() => {
-    const filter = this.filterSignal();
-    const rooms = this.roomsSignal();
-    if (filter === 'All') {
-      return rooms;
-    }
-    return rooms.filter((room) => room.category.toLowerCase() === filter.toLowerCase());
-  });
+  private loadingSignal = signal(false);
+  isLoading = this.loadingSignal.asReadonly();
 
-  constructor() {}
+  loadRooms(): void {
 
-  setFilter(category: string): void {
-    this.filterSignal.set(category);
+    this.loadingSignal.set(true);
+
+    this.http
+      .get<Room[]>(`${this.apiUrl}/public-rooms`)
+      .subscribe({
+
+        next: rooms => {
+
+          this.roomsSignal.set(rooms);
+
+          this.loadingSignal.set(false);
+
+        },
+
+        error: err => {
+
+          console.error(err);
+
+          this.loadingSignal.set(false);
+
+        }
+
+      });
+
   }
 
-  // Helper to fetch recommended rooms based on preference
-  getRecommendedRooms(preference: string | null | undefined): Room[] {
-    if (!preference) return [];
-    return this.roomsSignal().filter(
-      (room) => room.category.toLowerCase() === preference.toLowerCase()
+  joinRoom(roomId: number): Observable<JoinRoomResponse> {
+    return this.http.post<JoinRoomResponse>(
+      `${this.apiUrl}/${roomId}/join`,   // POST /api/rooms/{id}/join
+      {}
     );
   }
+
+  leaveRoom(roomId: number): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}/${roomId}/leave`,  // POST /api/rooms/{id}/leave
+      {}
+    );
+  }
+
 }

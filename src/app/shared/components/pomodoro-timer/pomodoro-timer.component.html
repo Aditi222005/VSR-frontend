@@ -1,0 +1,42 @@
+<div class="pomodoro">
+
+  <!-- Phase label -->
+  <div class="pomodoro__phase" [class]="'pomodoro__phase--' + phase()">
+    {{ phaseLabel }}
+  </div>
+
+  <!-- SVG ring timer -->
+  <div class="pomodoro__ring-wrap">
+    <svg class="pomodoro__ring" viewBox="0 0 120 120">
+      <!-- Track -->
+      <circle cx="60" cy="60" r="54" class="pomodoro__ring-track" />
+      <!-- Progress arc -->
+      <circle
+        cx="60" cy="60" r="54"
+        class="pomodoro__ring-progress"
+        [class]="'pomodoro__ring-progress--' + phase()"
+        [style.stroke-dasharray]="circumference"
+        [style.stroke-dashoffset]="dashOffset"
+      />
+    </svg>
+    <div class="pomodoro__time">{{ timeLabel }}</div>
+  </div>
+
+  <!-- Cycles -->
+  <div class="pomodoro__cycles">
+    @for (i of [1,2,3,4]; track i) {
+      <span class="pomodoro__dot" [class.pomodoro__dot--done]="i <= cyclesComplete() % 4"></span>
+    }
+    <span class="pomodoro__cycle-label">Cycle {{ Math.floor(cyclesComplete() / 4) + 1 }}</span>
+  </div>
+
+  <!-- Controls -->
+  <div class="pomodoro__controls">
+    <button class="pomodoro__btn pomodoro__btn--secondary" (click)="reset()" title="Reset">↺</button>
+    <button class="pomodoro__btn pomodoro__btn--primary" (click)="toggle()">
+      {{ isRunning() ? '⏸ Pause' : '▶ Start' }}
+    </button>
+    <button class="pomodoro__btn pomodoro__btn--secondary" (click)="skip()" title="Skip">⏭</button>
+  </div>
+
+</div>

@@ -1,0 +1,349 @@
+<div class="room-shell">
+
+  <!-- ═══════════════════════════════════════════
+       HEADER
+  ════════════════════════════════════════════ -->
+  <header class="room-header">
+    <div class="room-header__left">
+      <span class="room-header__logo">🎓</span>
+      <h1 class="room-header__title">{{ roomName() }}</h1>
+      <span class="room-header__id">Room #{{ roomId }}</span>
+      @if (lk.isConnected()) {
+        <span class="room-header__live">
+          <span class="room-header__live-dot"></span> LIVE
+        </span>
+      }
+    </div>
+
+    <div class="room-header__right">
+      <!-- Participant count pill -->
+      <span class="room-header__pill">
+        👥 {{ participantCount() }}
+      </span>
+      <!-- Sidebar toggle -->
+      <button class="icon-btn" (click)="sidebarOpen.set(!sidebarOpen())" title="Toggle sidebar">
+        {{ sidebarOpen() ? '⊡' : '⊞' }}
+      </button>
+      <!-- Leave -->
+      <button class="btn btn--danger btn--sm" id="leave-btn" (click)="leaveRoom()">
+        🚪 Leave
+      </button>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════════════
+       BODY
+  ════════════════════════════════════════════ -->
+  <div class="room-body" [class.room-body--sidebar-closed]="!sidebarOpen()">
+
+    <!-- ── MAIN: Video area ─────────────────────────────────────────────── -->
+    <main class="room-main">
+
+      <!-- Pre-join card -->
+      @if (!videoJoined()) {
+        <div class="prejoin">
+          <div class="prejoin__card">
+            <div class="prejoin__icon">🎥</div>
+            <h2 class="prejoin__title">Join Video Session</h2>
+            <p class="prejoin__sub">Enable your camera and microphone to collaborate in real time.</p>
+
+            @if (lkError()) {
+              <div class="prejoin__error">⚠️ {{ lkError() }}</div>
+            }
+
+            <button
+              class="btn btn--primary btn--lg"
+              id="join-video-btn"
+              [disabled]="isJoining()"
+              (click)="joinVideo()"
+            >
+              @if (isJoining()) {
+                <span class="spinner"></span> Connecting…
+              } @else {
+                🚀 Join Video
+              }
+            </button>
+
+            <!-- Participant list preview while waiting -->
+            @if (wsParticipants().length > 0) {
+              <div class="prejoin__who">
+                <span class="prejoin__who-label">In the room:</span>
+                @for (p of wsParticipants(); track p.userId) {
+                  <span class="prejoin__who-chip">{{ p.username }}</span>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Video area (after joining) -->
+      @if (videoJoined()) {
+        <!-- Mode A: Participant Pinned Spotlight View -->
+        @if (pinnedParticipant(); as pinned) {
+          <div class="video-area">
+            <!-- Main Featured Pinned Tile -->
+            <div class="video-area__main">
+              <app-video-tile
+                [videoTrack]="pinned.videoTrack"
+                [participantName]="pinned.name"
+                [isLocal]="pinned.isLocal"
+                [isCameraEnabled]="pinned.isCameraEnabled"
+                [isMicEnabled]="pinned.isMicEnabled"
+                [isSpeaking]="pinned.isSpeaking"
+                [isHandRaised]="pinned.isHandRaised"
+                [isPinned]="true"
+                [connectionQuality]="pinned.connectionQuality"
+                (togglePin)="pinParticipant(pinned.identity)"
+              ></app-video-tile>
+              <div class="video-area__pin-badge" (click)="pinParticipant(pinned.identity)">
+                📌 Pinned • Click to unpin
+              </div>
+            </div>
+
+            <!-- Bottom Thumbnail Strip for remaining participants -->
+            @if (thumbnailParticipants().length > 0) {
+              <div class="video-area__strip">
+                @for (p of thumbnailParticipants(); track p.identity) {
+                  <div
+                    class="video-area__thumb"
+                    [class.video-area__thumb--speaking]="p.isSpeaking"
+                  >
+                    <app-video-tile
+                      [videoTrack]="p.videoTrack"
+                      [participantName]="p.name"
+                      [isLocal]="p.isLocal"
+                      [isCameraEnabled]="p.isCameraEnabled"
+                      [isMicEnabled]="p.isMicEnabled"
+                      [isSpeaking]="p.isSpeaking"
+                      [isHandRaised]="p.isHandRaised"
+                      [isPinned]="false"
+                      [connectionQuality]="p.connectionQuality"
+                      (togglePin)="pinParticipant(p.identity)"
+                    ></app-video-tile>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        } @else {
+          <!-- Mode B: Unpinned Equal Grid View -->
+          <div class="video-grid" [class]="'video-grid--' + lk.participants().length">
+            @for (p of lk.participants(); track p.identity) {
+              <app-video-tile
+                [videoTrack]="p.videoTrack"
+                [participantName]="p.name"
+                [isLocal]="p.isLocal"
+                [isCameraEnabled]="p.isCameraEnabled"
+                [isMicEnabled]="p.isMicEnabled"
+                [isSpeaking]="p.isSpeaking"
+                [isHandRaised]="p.isHandRaised"
+                [isPinned]="false"
+                [connectionQuality]="p.connectionQuality"
+                (togglePin)="pinParticipant(p.identity)"
+              ></app-video-tile>
+            }
+          </div>
+        }
+      }
+
+    </main>
+
+    <!-- ── RIGHT SIDEBAR ──────────────────────────────────────────────────── -->
+    @if (sidebarOpen()) {
+      <aside class="room-sidebar">
+
+        <!-- Tab navigation -->
+        <nav class="sidebar-tabs">
+          <button
+            class="sidebar-tabs__btn"
+            [class.sidebar-tabs__btn--active]="activeTab() === 'participants'"
+            (click)="switchTab('participants')"
+            title="Participants"
+          >
+            👥
+            @if (participantCount() > 0) {
+              <span class="sidebar-tabs__badge">{{ participantCount() }}</span>
+            }
+          </button>
+          <button
+            class="sidebar-tabs__btn"
+            [class.sidebar-tabs__btn--active]="activeTab() === 'chat'"
+            (click)="switchTab('chat')"
+            title="Chat"
+          >
+            💬
+            @if (unreadChat() > 0) {
+              <span class="sidebar-tabs__badge sidebar-tabs__badge--alert">{{ unreadChat() }}</span>
+            }
+          </button>
+          <button
+            class="sidebar-tabs__btn"
+            [class.sidebar-tabs__btn--active]="activeTab() === 'timer'"
+            (click)="switchTab('timer')"
+            title="Pomodoro Timer"
+          >
+            ⏱
+          </button>
+          <button
+            class="sidebar-tabs__btn"
+            [class.sidebar-tabs__btn--active]="activeTab() === 'notes'"
+            (click)="switchTab('notes')"
+            title="Notes"
+          >
+            📝
+          </button>
+        </nav>
+
+        <!-- Tab content -->
+        <div class="sidebar-content">
+
+          <!-- Participants tab -->
+          @if (activeTab() === 'participants') {
+            <div class="participants-panel">
+              <div class="panel-header">
+                <span class="panel-header__title">Participants</span>
+                <span class="panel-header__count">{{ participantCount() }}</span>
+              </div>
+
+              <div class="participant-list">
+                @if (wsParticipants().length === 0) {
+                  <p class="panel-empty">Waiting for participants…</p>
+                } @else {
+                  @for (p of wsParticipants(); track p.userId) {
+                    <div class="participant-row">
+                      <!-- Avatar -->
+                      <div class="participant-row__avatar">
+                        {{ p.username.substring(0,1).toUpperCase() }}
+                      </div>
+                      <div class="participant-row__info">
+                        <span class="participant-row__name">{{ p.username }}</span>
+                        <!-- LK status if connected -->
+                        @for (lkp of lk.participants(); track lkp.identity) {
+                          @if (lkp.name === p.username || lkp.identity === p.username) {
+                            <span class="participant-row__status">
+                              {{ lkp.isMicEnabled ? '🎤' : '🔇' }}
+                              {{ lkp.isCameraEnabled ? '📹' : '📷' }}
+                              @if (lkp.isSpeaking)    { <span class="speaking-dot"></span> }
+                              @if (lkp.isHandRaised)  { <span>✋</span> }
+                            </span>
+                          }
+                        }
+                      </div>
+                      <span class="participant-row__online-dot"></span>
+                    </div>
+                  }
+                }
+              </div>
+
+              <!-- Activity feed -->
+              @if (roomEvents().length > 0) {
+                <div class="panel-header panel-header--mt">
+                  <span class="panel-header__title">Activity</span>
+                </div>
+                <div class="activity-feed">
+                  @for (event of roomEvents().slice(0,15); track event.timestamp) {
+                    <div class="activity-item" [class]="'activity-item--' + event.eventType.toLowerCase()">
+                      <span class="activity-item__msg">{{ event.message }}</span>
+                      <span class="activity-item__time">{{ event.timestamp | date:'HH:mm' }}</span>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Chat tab -->
+          @if (activeTab() === 'chat') {
+            <app-chat-panel [roomId]="roomId" class="fill"></app-chat-panel>
+          }
+
+          <!-- Timer tab -->
+          @if (activeTab() === 'timer') {
+            <app-pomodoro-timer></app-pomodoro-timer>
+          }
+
+          <!-- Notes tab -->
+          @if (activeTab() === 'notes') {
+            <app-notes-panel [roomId]="roomId" class="fill"></app-notes-panel>
+          }
+
+        </div>
+      </aside>
+    }
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       CONTROL BAR
+  ════════════════════════════════════════════ -->
+  @if (videoJoined()) {
+    <footer class="control-bar">
+
+      <!-- Mic -->
+      <button
+        class="ctrl-btn"
+        [class.ctrl-btn--active]="lk.isMicEnabled()"
+        [class.ctrl-btn--off]="!lk.isMicEnabled()"
+        id="toggle-mic-btn"
+        (click)="toggleMic()"
+        title="Toggle Microphone"
+      >
+        <span class="ctrl-btn__icon">{{ lk.isMicEnabled() ? '🎤' : '🔇' }}</span>
+        <span class="ctrl-btn__label">{{ lk.isMicEnabled() ? 'Mute' : 'Unmute' }}</span>
+      </button>
+
+      <!-- Camera -->
+      <button
+        class="ctrl-btn"
+        [class.ctrl-btn--active]="lk.isCameraEnabled()"
+        [class.ctrl-btn--off]="!lk.isCameraEnabled()"
+        id="toggle-camera-btn"
+        (click)="toggleCamera()"
+        title="Toggle Camera"
+      >
+        <span class="ctrl-btn__icon">{{ lk.isCameraEnabled() ? '📹' : '📷' }}</span>
+        <span class="ctrl-btn__label">{{ lk.isCameraEnabled() ? 'Stop Video' : 'Start Video' }}</span>
+      </button>
+
+      <!-- Screen Share -->
+      <button
+        class="ctrl-btn"
+        [class.ctrl-btn--active]="lk.isScreenSharing()"
+        id="toggle-screenshare-btn"
+        (click)="toggleScreenShare()"
+        title="Share Screen"
+      >
+        <span class="ctrl-btn__icon">🖥️</span>
+        <span class="ctrl-btn__label">{{ lk.isScreenSharing() ? 'Stop Share' : 'Share Screen' }}</span>
+      </button>
+
+      <!-- Raise Hand -->
+      <button
+        class="ctrl-btn"
+        [class.ctrl-btn--active]="lk.isRaisingHand()"
+        id="raise-hand-btn"
+        (click)="toggleRaiseHand()"
+        title="Raise / Lower Hand"
+      >
+        <span class="ctrl-btn__icon">✋</span>
+        <span class="ctrl-btn__label">{{ lk.isRaisingHand() ? 'Lower Hand' : 'Raise Hand' }}</span>
+      </button>
+
+      <div class="ctrl-bar__divider"></div>
+
+      <!-- Leave -->
+      <button
+        class="ctrl-btn ctrl-btn--leave"
+        id="control-leave-btn"
+        (click)="leaveRoom()"
+        title="Leave Room"
+      >
+        <span class="ctrl-btn__icon">🚪</span>
+        <span class="ctrl-btn__label">Leave</span>
+      </button>
+
+    </footer>
+  }
+
+</div>

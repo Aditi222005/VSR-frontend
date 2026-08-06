@@ -1,0 +1,62 @@
+<div class="tile"
+     [class.tile--speaking]="isSpeaking"
+     [class.tile--local]="isLocal">
+
+  <!-- Camera off → avatar placeholder -->
+  @if (!isCameraEnabled || !videoTrack) {
+    <div class="tile__avatar">
+      <span class="tile__initials">{{ initials }}</span>
+    </div>
+  }
+
+  <!-- Video element -->
+  <video
+    #videoEl
+    class="tile__video"
+    [class.tile__video--hidden]="!isCameraEnabled || !videoTrack"
+    autoplay
+    playsinline
+    [muted]="isLocal"
+  ></video>
+
+  <!-- Raised hand badge -->
+  @if (isHandRaised) {
+    <div class="tile__hand-badge">✋</div>
+  }
+
+  <!-- Pin / Unpin hover button -->
+  <button
+    class="tile__pin-btn"
+    [class.tile__pin-btn--active]="isPinned"
+    (click)="onPinClick($event)"
+    [title]="isPinned ? 'Unpin video' : 'Pin video'"
+  >
+    {{ isPinned ? '📌' : '📍' }}
+  </button>
+
+  <!-- Name + indicators overlay -->
+  <div class="tile__overlay">
+    <span class="tile__name">
+      {{ participantName }}{{ isLocal ? ' (You)' : '' }}
+    </span>
+    <div class="tile__indicators">
+      <!-- Mic -->
+      <span class="tile__indicator" [class.tile__indicator--off]="!isMicEnabled" title="Microphone">
+        {{ isMicEnabled ? '🎤' : '🔇' }}
+      </span>
+      <!-- Camera -->
+      <span class="tile__indicator" [class.tile__indicator--off]="!isCameraEnabled" title="Camera">
+        {{ isCameraEnabled ? '📹' : '📷' }}
+      </span>
+      <!-- Connection quality bars -->
+      @if (qualityBars > 0) {
+        <span class="tile__quality" [class]="'tile__quality--' + connectionQuality" title="Connection: {{ connectionQuality }}">
+          @for (b of [1,2,3]; track b) {
+            <span class="tile__quality-bar" [class.tile__quality-bar--lit]="b <= qualityBars"></span>
+          }
+        </span>
+      }
+    </div>
+  </div>
+
+</div>
