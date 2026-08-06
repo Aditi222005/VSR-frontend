@@ -236,20 +236,34 @@
                 }
               </div>
 
-              <!-- Activity feed -->
-              @if (roomEvents().length > 0) {
-                <div class="panel-header panel-header--mt">
-                  <span class="panel-header__title">Activity</span>
-                </div>
-                <div class="activity-feed">
-                  @for (event of roomEvents().slice(0,15); track event.timestamp) {
-                    <div class="activity-item" [class]="'activity-item--' + event.eventType.toLowerCase()">
-                      <span class="activity-item__msg">{{ event.message }}</span>
-                      <span class="activity-item__time">{{ event.timestamp | date:'HH:mm' }}</span>
-                    </div>
-                  }
-                </div>
-              }
+<!-- Activity feed -->
+@if (roomEvents().length > 0) {
+
+  <div class="panel-header panel-header--mt">
+    <span class="panel-header__title">Activity</span>
+  </div>
+
+  <div class="activity-feed">
+
+    @for (event of roomEvents().slice(0,15); track event.timestamp) {
+
+      <div class="activity-item">
+
+        <span class="activity-item__msg">
+          {{ event.message }}
+        </span>
+
+        <span class="activity-item__time">
+          {{ event.timestamp | date:'HH:mm' }}
+        </span>
+
+      </div>
+
+    }
+
+  </div>
+
+}
             </div>
           }
 

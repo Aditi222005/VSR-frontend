@@ -1,5 +1,5 @@
 export interface RoomEvent {
-  eventType: string;
+  type: string;
   roomId: number;
   userId: number;
   username: string;
