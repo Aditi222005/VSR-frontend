@@ -273,10 +273,12 @@
           }
 
           <!-- Timer tab -->
-          @if (activeTab() === 'timer') {
-            <app-pomodoro-timer></app-pomodoro-timer>
-          }
-
+         <!-- Timer tab -->
+@if (activeTab() === 'timer') {
+  <app-pomodoro-timer
+    [roomId]="roomId">
+  </app-pomodoro-timer>
+}
           <!-- Notes tab -->
           @if (activeTab() === 'notes') {
             <app-notes-panel [roomId]="roomId" class="fill"></app-notes-panel>

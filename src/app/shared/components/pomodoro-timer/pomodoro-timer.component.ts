@@ -1,5 +1,15 @@
-import { Component, signal, OnDestroy } from '@angular/core';
+import {
+  Component,
+  Input,
+  OnDestroy,
+  OnInit,
+  signal
+} from '@angular/core';
+
 import { CommonModule } from '@angular/common';
+
+import { WebSocketService } from '../../../core/services/websocket/websocket.service';
+import { PomodoroState } from '../../../core/models/pomodoro-state.model';
 
 type Phase = 'work' | 'break' | 'longBreak';
 
@@ -8,106 +18,210 @@ type Phase = 'work' | 'break' | 'longBreak';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './pomodoro-timer.component.html',
-  styleUrl: './pomodoro-timer.component.scss',
+  styleUrl: './pomodoro-timer.component.scss'
 })
-export class PomodoroTimerComponent implements OnDestroy {
-  readonly WORK_DURATION  = 25 * 60;
-  readonly BREAK_DURATION =  5 * 60;
-  readonly LONG_BREAK     = 15 * 60;
+export class PomodoroTimerComponent
+implements OnInit, OnDestroy {
+
+  @Input({ required: true })
+  roomId!: number;
+
+  readonly WORK_DURATION = 25 * 60;
+  readonly BREAK_DURATION = 5 * 60;
+  readonly LONG_BREAK = 15 * 60;
 
   protected readonly Math = Math;
 
-  phase          = signal<Phase>('work');
-  secondsLeft    = signal(this.WORK_DURATION);
-  isRunning      = signal(false);
+  phase = signal<Phase>('work');
+
+  secondsLeft = signal(this.WORK_DURATION);
+
+  isRunning = signal(false);
+
   cyclesComplete = signal(0);
 
   private intervalId: any = null;
 
-  get progress(): number {
-    const total = this._totalForPhase(this.phase());
-    return ((total - this.secondsLeft()) / total) * 100;
+  constructor(
+    private websocketService: WebSocketService
+  ) {}
+
+  ngOnInit(): void {
+
+    this.websocketService.connect();
+
+    this.websocketService.subscribeToPomodoro(
+      this.roomId,
+      state => this.updateState(state)
+    );
+
+    this.websocketService.requestPomodoroState(
+      this.roomId
+    );
+
   }
 
-  get circumference(): number { return 2 * Math.PI * 54; }
+  private updateState(
+  state: PomodoroState
+): void {
 
-  get dashOffset(): number {
-    return this.circumference - (this.progress / 100) * this.circumference;
+  this.phase.set(state.phase);
+
+  this.cyclesComplete.set(state.cyclesComplete);
+
+  this.isRunning.set(state.running);
+
+  clearInterval(this.intervalId);
+  this.intervalId = null;
+
+  if (!state.running) {
+
+    this.secondsLeft.set(state.remainingSeconds);
+    return;
+
   }
 
-  get timeLabel(): string {
-    const m = Math.floor(this.secondsLeft() / 60).toString().padStart(2, '0');
-    const s = (this.secondsLeft() % 60).toString().padStart(2, '0');
-    return `${m}:${s}`;
-  }
+  const started = new Date(state.startedAt!).getTime();
 
-  get phaseLabel(): string {
-    switch (this.phase()) {
-      case 'work':      return '🎯 Focus';
-      case 'break':     return '☕ Break';
-      case 'longBreak': return '🌿 Long Break';
-    }
-  }
+  const update = () => {
 
-  toggle(): void {
-    if (this.isRunning()) {
+    const elapsed = Math.floor(
+      (Date.now() - started) / 1000
+    );
+
+    const remaining = Math.max(
+      0,
+      state.remainingSeconds - elapsed
+    );
+
+    this.secondsLeft.set(remaining);
+
+    if (remaining <= 0) {
+
       clearInterval(this.intervalId);
       this.intervalId = null;
-      this.isRunning.set(false);
-    } else {
-      this.isRunning.set(true);
-      this.intervalId = setInterval(() => this._tick(), 1000);
+
+      this.websocketService.nextPomodoro(
+        this.roomId
+      );
+
     }
-  }
 
-  reset(): void {
-    clearInterval(this.intervalId);
-    this.intervalId = null;
-    this.isRunning.set(false);
-    this.secondsLeft.set(this._totalForPhase(this.phase()));
-  }
+  };
 
-  skip(): void {
-    clearInterval(this.intervalId);
-    this.intervalId = null;
-    this.isRunning.set(false);
-    this._nextPhase();
-  }
+  update();
 
-  ngOnDestroy(): void {
-    clearInterval(this.intervalId);
-  }
+  this.intervalId = setInterval(update, 1000);
 
-  private _tick(): void {
-    const next = this.secondsLeft() - 1;
-    if (next <= 0) {
-      this.secondsLeft.set(0);
-      clearInterval(this.intervalId);
-      this.intervalId = null;
-      this.isRunning.set(false);
-      this._nextPhase();
-    } else {
-      this.secondsLeft.set(next);
-    }
-  }
-
-  private _nextPhase(): void {
-    if (this.phase() === 'work') {
-      const cycles = this.cyclesComplete() + 1;
-      this.cyclesComplete.set(cycles);
-      const next: Phase = cycles % 4 === 0 ? 'longBreak' : 'break';
-      this.phase.set(next);
-    } else {
-      this.phase.set('work');
-    }
-    this.secondsLeft.set(this._totalForPhase(this.phase()));
-  }
-
-  private _totalForPhase(p: Phase): number {
-    switch (p) {
-      case 'work':      return this.WORK_DURATION;
-      case 'break':     return this.BREAK_DURATION;
-      case 'longBreak': return this.LONG_BREAK;
-    }
-  }
 }
+  get progress(): number {
+
+  const total = this._totalForPhase(this.phase());
+
+  return ((total - this.secondsLeft()) / total) * 100;
+
+}
+
+get circumference(): number {
+
+  return 2 * Math.PI * 54;
+
+}
+
+get dashOffset(): number {
+
+  return this.circumference -
+         (this.progress / 100) * this.circumference;
+
+}
+
+get timeLabel(): string {
+
+  const m = Math.floor(
+      this.secondsLeft() / 60
+  ).toString().padStart(2, '0');
+
+  const s = (
+      this.secondsLeft() % 60
+  ).toString().padStart(2, '0');
+
+  return `${m}:${s}`;
+
+}
+
+get phaseLabel(): string {
+
+  switch (this.phase()) {
+
+    case 'work':
+      return '🎯 Focus';
+
+    case 'break':
+      return '☕ Break';
+
+    case 'longBreak':
+      return '🌿 Long Break';
+
+  }
+
+}
+toggle(): void {
+
+  if (this.isRunning()) {
+
+    this.websocketService.pausePomodoro(
+      this.roomId
+    );
+
+  } else {
+
+    this.websocketService.startPomodoro(
+      this.roomId
+    );
+
+  }
+
+}
+
+reset(): void {
+
+  this.websocketService.resetPomodoro(
+    this.roomId
+  );
+
+}
+
+skip(): void {
+
+  this.websocketService.nextPomodoro(
+    this.roomId
+  );
+
+}
+
+ngOnDestroy(): void {
+
+  clearInterval(this.intervalId);
+
+  this.intervalId = null;
+
+}
+
+private _totalForPhase(
+  phase: Phase
+): number {
+
+  switch (phase) {
+
+    case 'work':
+      return this.WORK_DURATION;
+
+    case 'break':
+      return this.BREAK_DURATION;
+
+    case 'longBreak':
+      return this.LONG_BREAK;
+
+  }
+
+}}

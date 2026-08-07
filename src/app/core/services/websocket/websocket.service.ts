@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Client, StompSubscription } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
+import { PomodoroState } from '../../models/pomodoro-state.model';
 
 type SubscribeRequest = {
   destination: string;
@@ -28,7 +29,7 @@ export class WebSocketService {
 
     this.client = new Client({
 
-      // ✅ STOMP Debug Logs
+      // STOMP Debug Logs
       debug: (msg: string) => {
         console.log('[STOMP]', msg);
       },
@@ -82,7 +83,6 @@ export class WebSocketService {
         console.error('[WS] WebSocket Error', err);
       },
 
-      // ✅ Added for debugging
       onWebSocketClose: event => {
         console.error('[WS] WebSocket Closed', event);
       }
@@ -159,6 +159,105 @@ export class WebSocketService {
   }
 
   // --------------------------------------------------
+  // Pomodoro
+  // --------------------------------------------------
+
+  subscribeToPomodoro(
+roomId: number,
+callback: (state: PomodoroState) => void
+): void {
+
+    this._subscribe(
+      `/topic/rooms/${roomId}/pomodoro`,
+      callback
+    );
+
+  }
+
+  startPomodoro(roomId: number): void {
+
+    if (!this.client?.connected) {
+      console.warn('[WS] STOMP not connected');
+      return;
+    }
+
+    this.client.publish({
+      destination: '/app/pomodoro.start',
+      body: JSON.stringify(roomId)
+    });
+
+  }
+
+  pausePomodoro(roomId: number): void {
+
+    if (!this.client?.connected) {
+      console.warn('[WS] STOMP not connected');
+      return;
+    }
+
+    this.client.publish({
+      destination: '/app/pomodoro.pause',
+      body: JSON.stringify(roomId)
+    });
+
+  }
+
+  resumePomodoro(roomId: number): void {
+
+    if (!this.client?.connected) {
+      console.warn('[WS] STOMP not connected');
+      return;
+    }
+
+    this.client.publish({
+      destination: '/app/pomodoro.resume',
+      body: JSON.stringify(roomId)
+    });
+
+  }
+  nextPomodoro(roomId: number): void {
+
+  if (!this.client?.connected) {
+    console.warn('[WS] STOMP not connected');
+    return;
+  }
+
+  this.client.publish({
+    destination: '/app/pomodoro.next',
+    body: JSON.stringify(roomId)
+  });
+
+}
+
+  resetPomodoro(roomId: number): void {
+
+    if (!this.client?.connected) {
+      console.warn('[WS] STOMP not connected');
+      return;
+    }
+
+    this.client.publish({
+      destination: '/app/pomodoro.reset',
+      body: JSON.stringify(roomId)
+    });
+
+  }
+
+  requestPomodoroState(roomId: number): void {
+
+    if (!this.client?.connected) {
+      console.warn('[WS] STOMP not connected');
+      return;
+    }
+
+    this.client.publish({
+      destination: '/app/pomodoro.state',
+      body: JSON.stringify(roomId)
+    });
+
+  }
+
+  // --------------------------------------------------
   // Disconnect
   // --------------------------------------------------
 
@@ -199,7 +298,7 @@ export class WebSocketService {
 
       const sub = this.client.subscribe(destination, msg => {
 
-        console.log('[WS] Chat/Event received:', msg.body);
+        console.log('[WS] Event received:', msg.body);
 
         callback(JSON.parse(msg.body));
 
