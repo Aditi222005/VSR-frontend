@@ -7,6 +7,7 @@ import { FormsModule } from '@angular/forms';
 import { WebSocketService } from '../../../core/services/websocket/websocket.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { ChatMessage } from '../../../core/models/chat-message.model';
+import { ChatService } from '../../../core/services/chat.service';
 
 @Component({
   selector: 'app-chat-panel',
@@ -21,6 +22,7 @@ export class ChatPanelComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   private ws = inject(WebSocketService);
   private auth = inject(AuthService);
+  private chatService = inject(ChatService);
 
   messages = signal<ChatMessage[]>([]);
   draftMessage = '';
@@ -30,18 +32,31 @@ export class ChatPanelComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   console.log("ChatPanel ngOnInit");
 
+  // Load previous messages
+ this.chatService.getChatHistory(this.roomId)
+  .subscribe({
+    next: history => {
+      console.log("CHAT HISTORY:", history);
+      this.messages.set(history);
+      this.shouldScrollToBottom = true;
+    },
+    error: err => {
+      console.error("CHAT HISTORY ERROR:", err);
+    }
+  });
+
+  // Listen for new messages
   this.ws.subscribeToChat(this.roomId, (msg: ChatMessage) => {
 
-  console.log("CHAT MESSAGE RECEIVED:", msg);
+    console.log("CHAT MESSAGE RECEIVED:", msg);
 
-  this.messages.update(prev => [...prev, msg]);
+    this.messages.update(prev => [...prev, msg]);
 
-  console.log("MESSAGES ARRAY:", this.messages());
+    this.shouldScrollToBottom = true;
 
-  this.shouldScrollToBottom = true;
-});
+  });
+
 }
-
   ngAfterViewChecked(): void {
     if (this.shouldScrollToBottom) {
       this._scrollToBottom();
