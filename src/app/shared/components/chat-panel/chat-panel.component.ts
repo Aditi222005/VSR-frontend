@@ -7,6 +7,7 @@ import { FormsModule } from '@angular/forms';
 import { WebSocketService } from '../../../core/services/websocket/websocket.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { ChatMessage } from '../../../core/models/chat-message.model';
+import { ChatService } from '../../../core/services/chat.service';
 
 @Component({
   selector: 'app-chat-panel',
@@ -21,14 +22,24 @@ export class ChatPanelComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   private ws = inject(WebSocketService);
   private auth = inject(AuthService);
+  private chatService = inject(ChatService);
 
   messages = signal<ChatMessage[]>([]);
   draftMessage = '';
   private shouldScrollToBottom = false;
 
   ngOnInit(): void {
+
+    console.log("ChatPanel ngOnInit");
+
     this.ws.subscribeToChat(this.roomId, (msg: ChatMessage) => {
+
+      console.log("CHAT MESSAGE RECEIVED:", msg);
+
       this.messages.update(prev => [...prev, msg]);
+
+      console.log("MESSAGES ARRAY:", this.messages());
+
       this.shouldScrollToBottom = true;
     });
   }
