@@ -1,33 +1,62 @@
-import { Component, OnInit, signal, HostListener, inject } from '@angular/core';
+import { Component, OnInit, signal, computed, HostListener, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../core/services/auth.service';
 import { RoomService } from '../core/services/room.service';
+import { ThemeService } from '../core/services/theme.service';
 import { RoomCardComponent } from '../shared/components/room-card/room-card.component';
-import { ScrollRevealDirective } from '../shared/directives/scroll-reveal.directive';
+import { CreateRoomModalComponent } from '../shared/components/create-room-modal/create-room-modal.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, RoomCardComponent, ScrollRevealDirective],
+  imports: [
+    CommonModule,
+    RouterModule,
+    RoomCardComponent,
+    CreateRoomModalComponent
+  ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
 export class DashboardComponent implements OnInit {
-  // Inject services
   private authService = inject(AuthService);
-  private roomService = inject(RoomService);
+  public roomService = inject(RoomService);
+  public themeService = inject(ThemeService);
   private router = inject(Router);
 
-  // Signals
   dropdownOpen = signal(false);
+  createModalOpen = signal(false);
 
-  // Signals from services
+  // Filters
+  selectedCategory = signal<string>('ALL');
+  searchQuery = signal<string>('');
+
   currentUser = this.authService.currentUser;
   rooms = this.roomService.rooms;
   isLoading = this.roomService.isLoading;
 
-  constructor() {}
+  // Filtered rooms computed signal
+  filteredRooms = computed(() => {
+    const all = this.rooms();
+    const cat = this.selectedCategory();
+    const q = this.searchQuery().toLowerCase().trim();
+
+    return all.filter(r => {
+      const matchCat = cat === 'ALL' || r.roomType === cat;
+      const matchQ = !q || r.name.toLowerCase().includes(q) || (r.description && r.description.toLowerCase().includes(q));
+      return matchCat && matchQ;
+    });
+  });
+
+  categories = [
+    { value: 'ALL', label: '🌐 All Spaces' },
+    { value: 'CODING', label: '💻 Coding' },
+    { value: 'EXAM_PREP', label: '📝 Exam Prep' },
+    { value: 'READING', label: '📖 Reading' },
+    { value: 'DESIGN', label: '🎨 Design' },
+    { value: 'GENERAL_FOCUS', label: '🎯 General Focus' }
+  ];
 
   ngOnInit(): void {
     if (!this.authService.isLoggedIn()) {
@@ -38,12 +67,21 @@ export class DashboardComponent implements OnInit {
 
   getUserInitials(): string {
     const user = this.currentUser();
-    if (!user) return 'U';
+    if (!user) return 'ST';
     const parts = user.name.split(' ');
     if (parts.length >= 2) {
       return (parts[0][0] + parts[1][0]).toUpperCase();
     }
     return user.name.substring(0, 2).toUpperCase();
+  }
+
+  setCategory(cat: string): void {
+    this.selectedCategory.set(cat);
+  }
+
+  updateSearch(event: Event): void {
+    const val = (event.target as HTMLInputElement).value;
+    this.searchQuery.set(val);
   }
 
   toggleDropdown(event: Event): void {
@@ -55,9 +93,16 @@ export class DashboardComponent implements OnInit {
     this.dropdownOpen.set(false);
   }
 
-  // Close dropdown on click outside
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent): void {
+  openCreateModal(): void {
+    this.createModalOpen.set(true);
+  }
+
+  closeCreateModal(): void {
+    this.createModalOpen.set(false);
+  }
+
+  @HostListener('document:click')
+  onDocumentClick(): void {
     this.closeDropdown();
   }
 

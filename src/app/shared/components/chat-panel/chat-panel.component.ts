@@ -27,20 +27,11 @@ export class ChatPanelComponent implements OnInit, OnDestroy, AfterViewChecked {
   private shouldScrollToBottom = false;
 
   ngOnInit(): void {
-
-  console.log("ChatPanel ngOnInit");
-
-  this.ws.subscribeToChat(this.roomId, (msg: ChatMessage) => {
-
-  console.log("CHAT MESSAGE RECEIVED:", msg);
-
-  this.messages.update(prev => [...prev, msg]);
-
-  console.log("MESSAGES ARRAY:", this.messages());
-
-  this.shouldScrollToBottom = true;
-});
-}
+    this.ws.subscribeToChat(this.roomId, (msg: ChatMessage) => {
+      this.messages.update(prev => [...prev, msg]);
+      this.shouldScrollToBottom = true;
+    });
+  }
 
   ngAfterViewChecked(): void {
     if (this.shouldScrollToBottom) {

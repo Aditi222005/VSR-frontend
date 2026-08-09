@@ -2,10 +2,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
-  padding: 1.25rem 1rem;
+  gap: 1.25rem;
+  padding: 1.5rem 1rem;
 
-  // ── Phase label ──────────────────────────────────────────────────────────────
+  // ── Phase label ──
   &__phase {
     font-size: 0.75rem;
     font-weight: 700;
@@ -13,39 +13,45 @@
     letter-spacing: 0.12em;
     padding: 0.25rem 0.875rem;
     border-radius: 999px;
-    transition: background 0.4s, color 0.4s;
+    transition: all 300ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1));
 
-    &--work      { background: rgba(79, 70, 229, 0.15); color: #a5b4fc; border: 1px solid rgba(79,70,229,0.3); }
+    &--work      { background: rgba(45, 138, 110, 0.15); color: var(--brand-primary, #2D8A6E); border: 1px solid rgba(45,138,110,0.3); }
     &--break     { background: rgba(34, 197, 94, 0.12); color: #86efac; border: 1px solid rgba(34,197,94,0.3); }
     &--longBreak { background: rgba(20, 184, 166, 0.12); color: #5eead4; border: 1px solid rgba(20,184,166,0.3); }
   }
 
-  // ── SVG ring ─────────────────────────────────────────────────────────────────
+  // ── SVG ring ──
   &__ring-wrap {
     position: relative;
-    width: 140px;
-    height: 140px;
+    width: 180px;
+    height: 180px;
+    transition: filter 300ms ease;
+
+    // Ending pulse — glows when < 60s remaining
+    &--ending {
+      animation: timer-ending-pulse 1.2s ease-in-out infinite;
+    }
   }
 
   &__ring {
-    width: 140px;
-    height: 140px;
+    width: 180px;
+    height: 180px;
     transform: rotate(-90deg);
   }
 
   &__ring-track {
     fill: none;
-    stroke: #1e293b;
-    stroke-width: 8;
+    stroke: var(--border-color, #2A2D3A);
+    stroke-width: 6;
   }
 
   &__ring-progress {
     fill: none;
-    stroke-width: 8;
+    stroke-width: 6;
     stroke-linecap: round;
-    transition: stroke-dashoffset 1s linear, stroke 0.4s;
+    transition: stroke-dashoffset 1s linear, stroke 400ms ease;
 
-    &--work      { stroke: #4f46e5; }
+    &--work      { stroke: var(--brand-primary, #2D8A6E); }
     &--break     { stroke: #22c55e; }
     &--longBreak { stroke: #14b8a6; }
   }
@@ -56,15 +62,15 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.75rem;
+    font-size: 2.25rem;
     font-weight: 700;
-    color: #f1f5f9;
+    color: var(--text-main, #E8E6E3);
     font-variant-numeric: tabular-nums;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-mono, 'DM Mono', 'SF Mono', monospace);
     letter-spacing: -0.03em;
   }
 
-  // ── Cycles ───────────────────────────────────────────────────────────────────
+  // ── Cycles ──
   &__cycles {
     display: flex;
     align-items: center;
@@ -75,19 +81,19 @@
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: #2d3748;
-    transition: background 0.3s;
+    background: var(--border-color, #2A2D3A);
+    transition: background 300ms var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1));
 
-    &--done { background: #4f46e5; }
+    &--done { background: var(--brand-primary, #2D8A6E); }
   }
 
   &__cycle-label {
     font-size: 0.7rem;
-    color: #475569;
+    color: var(--text-subtle, #6B6770);
     margin-left: 0.375rem;
   }
 
-  // ── Controls ─────────────────────────────────────────────────────────────────
+  // ── Controls ──
   &__controls {
     display: flex;
     align-items: center;
@@ -104,25 +110,42 @@
     font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-body, 'DM Sans', sans-serif);
     border: none;
-    transition: opacity 0.2s, transform 0.1s;
+    transition: all 200ms var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1));
 
-    &:hover  { opacity: 0.85; transform: translateY(-1px); }
-    &:active { transform: translateY(0); }
+    @media (hover: hover) {
+      &:hover {
+        transform: translateY(-2px) scale(1.04);
+        box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.3));
+      }
+    }
+
+    &:active { transform: translateY(0) scale(0.96); }
 
     &--primary {
-      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      background: linear-gradient(135deg, var(--brand-primary, #2D8A6E), var(--brand-primary-hover, #24735B));
       color: #fff;
-      min-width: 90px;
+      min-width: 100px;
+      box-shadow: 0 2px 12px var(--brand-glow, rgba(45,138,110,0.25));
     }
 
     &--secondary {
-      background: #1a1f2e;
-      color: #94a3b8;
-      border: 1px solid #2d3748;
+      background: var(--bg-surface-elevated, #1A1D27);
+      color: var(--text-muted, #9B97A0);
+      border: 1px solid var(--border-color, #2A2D3A);
       font-size: 1rem;
       padding: 0.5rem 0.625rem;
     }
+  }
+}
+
+// ── Ending pulse glow ──
+@keyframes timer-ending-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px var(--brand-glow, rgba(45,138,110,0.3)));
+  }
+  50% {
+    filter: drop-shadow(0 0 20px var(--brand-glow, rgba(45,138,110,0.6)));
   }
 }

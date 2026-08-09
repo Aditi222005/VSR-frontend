@@ -5,27 +5,27 @@
 // ── Color Tokens ──
 :root {
   // Base palette — warm neutrals
-  --color-bg:        #FAF8F5;
-  --color-bg-alt:    #F2EFEB;
-  --color-surface:   #FFFFFF;
-  --color-border:    #E8E4DF;
+  --color-bg: #FAF8F5;
+  --color-bg-alt: #F2EFEB;
+  --color-surface: #FFFFFF;
+  --color-border: #E8E4DF;
   --color-border-strong: #D8D3CC;
-  --color-text:      #1A1714;
+  --color-text: #1A1714;
   --color-text-secondary: #6B6560;
   --color-text-muted: #9C9590;
 
   // Accent — a confident warm teal/sage
-  --color-accent:    #2D8A6E;
+  --color-accent: #2D8A6E;
   --color-accent-hover: #24735B;
   --color-accent-light: #E8F5F0;
-  --color-accent-glow:  rgba(45, 138, 110, 0.25);
+  --color-accent-glow: rgba(45, 138, 110, 0.25);
 
   // CTA band
-  --color-cta-bg:    #1A1714;
-  --color-cta-text:  #FAF8F5;
+  --color-cta-bg: #1A1714;
+  --color-cta-text: #FAF8F5;
 
   // Timer
-  --color-timer:     #2D8A6E;
+  --color-timer: #2D8A6E;
   --color-timer-glow: rgba(45, 138, 110, 0.35);
 
   // Designed card shadows — multi-stop for depth
@@ -46,16 +46,16 @@
     0 24px 56px rgba(26, 23, 20, 0.10);
 
   // Single-purpose shadows (kept for non-card elements)
-  --shadow-sm:  0 1px 3px rgba(26, 23, 20, 0.06);
-  --shadow-md:  0 4px 16px rgba(26, 23, 20, 0.08);
-  --shadow-lg:  0 8px 32px rgba(26, 23, 20, 0.10);
+  --shadow-sm: 0 1px 3px rgba(26, 23, 20, 0.06);
+  --shadow-md: 0 4px 16px rgba(26, 23, 20, 0.08);
+  --shadow-lg: 0 8px 32px rgba(26, 23, 20, 0.10);
   --shadow-lift: 0 12px 36px rgba(26, 23, 20, 0.12);
 
   // Radii
-  --radius-sm:  8px;
-  --radius-md:  12px;
-  --radius-lg:  20px;
-  --radius-xl:  28px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
   --radius-full: 9999px;
 
   // Transitions
@@ -67,17 +67,134 @@
 
   // Typography
   --font-heading: 'DM Serif Display', Georgia, serif;
-  --font-body:    'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono:    'DM Mono', 'SF Mono', 'Fira Code', monospace;
+  --font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'DM Mono', 'SF Mono', 'Fira Code', monospace;
 
   // Layout
   --max-width: 1200px;
   --section-padding: 120px;
   --section-padding-mobile: 72px;
+
+
+  // ── Theme-aware aliases (consumed by dashboard / room / profile components) ──
+  --bg-app:              var(--color-bg);
+  --bg-surface:          var(--color-surface);
+  --bg-surface-elevated: var(--color-bg-alt);
+  --bg-surface-hover:    var(--color-bg-alt);
+  --bg-glass:            rgba(255, 255, 255, 0.82);
+
+  --brand-primary:       var(--color-accent);
+  --brand-primary-hover: var(--color-accent-hover);
+  --brand-primary-light: var(--color-accent-light);
+  --brand-glow:          var(--color-accent-glow);
+
+  --text-main:   var(--color-text);
+  --text-muted:  var(--color-text-secondary);
+  --text-subtle: var(--color-text-muted);
+
+  --border-color:  var(--color-border);
+  --border-strong: var(--color-border-strong);
+  --border-subtle: var(--color-border);
+
+  --transition-fast: 200ms var(--ease-spring);
+
+  // Category accent colors
+  --cat-coding:  #8B5CF6;
+  --cat-exam:    #EF4444;
+  --cat-reading: #10B981;
+  --cat-design:  #EC4899;
+  --cat-general: #3B82F6;
+
+  --accent-coral:   #F97316;
+  --accent-emerald: #10B981;
+
+  --radius-xs: 6px;
+
+  --shadow-glow: 0 0 24px var(--color-accent-glow);
+}
+
+// ── Dark Theme ──
+[data-theme="dark"] {
+  --color-bg:            #0F1117;
+  --color-bg-alt:        #1A1D27;
+  --color-surface:       #161922;
+  --color-border:        #2A2D3A;
+  --color-border-strong: #3A3D4A;
+  --color-text:          #E8E6E3;
+  --color-text-secondary:#9B97A0;
+  --color-text-muted:    #6B6770;
+
+  --bg-glass: rgba(22, 25, 34, 0.85);
+
+  --shadow-card:
+    0 0 0 1px var(--color-border),
+    0 1px 2px rgba(0,0,0,0.2),
+    0 4px 12px rgba(0,0,0,0.25),
+    0 12px 32px rgba(0,0,0,0.2);
+  --shadow-card-hover:
+    0 0 0 1px var(--color-border-strong),
+    0 2px 4px rgba(0,0,0,0.2),
+    0 8px 20px rgba(0,0,0,0.3),
+    0 20px 48px rgba(0,0,0,0.25);
+  --shadow-card-elevated:
+    0 0 0 1px var(--color-border),
+    0 2px 4px rgba(0,0,0,0.15),
+    0 8px 24px rgba(0,0,0,0.3),
+    0 24px 56px rgba(0,0,0,0.25);
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.35);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.4);
+  --shadow-lift: 0 12px 36px rgba(0,0,0,0.45);
+}
+
+// ── Glass Panel Base Class ──
+.glass-panel {
+  background: var(--bg-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+// ── Shared Keyframes ──
+@keyframes pulse-ring {
+  0%   { transform: scale(1);   opacity: 1; }
+  70%  { transform: scale(2.2); opacity: 0; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes shine-sweep {
+  0%   { left: -100%; }
+  100% { left: 120%; }
+}
+
+@keyframes fade-tab-content {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes ambient-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%      { transform: translate(20px, -15px) scale(1.05); }
+  66%      { transform: translate(-15px, 10px) scale(0.95); }
 }
 
 // ── Reset & Base ──
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -116,7 +233,8 @@ button {
   background: none;
 }
 
-ul, ol {
+ul,
+ol {
   list-style: none;
 }
 
@@ -136,7 +254,7 @@ ul, ol {
   opacity: 0;
   transform: translateY(32px);
   transition: opacity var(--duration-slow) var(--ease-out),
-              transform var(--duration-slow) var(--ease-out);
+    transform var(--duration-slow) var(--ease-out);
 
   // Springy overshoot variant (default via directive)
   &--spring {

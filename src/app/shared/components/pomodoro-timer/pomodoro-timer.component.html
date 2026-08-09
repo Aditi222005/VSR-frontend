@@ -6,7 +6,7 @@
   </div>
 
   <!-- SVG ring timer -->
-  <div class="pomodoro__ring-wrap">
+  <div class="pomodoro__ring-wrap" [class.pomodoro__ring-wrap--ending]="secondsLeft() < 60 && isRunning()">
     <svg class="pomodoro__ring" viewBox="0 0 120 120">
       <!-- Track -->
       <circle cx="60" cy="60" r="54" class="pomodoro__ring-track" />

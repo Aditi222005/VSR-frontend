@@ -1,85 +1,157 @@
 <div class="dashboard-shell">
-  <!-- Top Bar (Logged-in Shell) -->
-  <header class="topbar">
+  <!-- Top Bar Layout Header -->
+  <header class="topbar glass-panel">
     <div class="container topbar__inner">
-      <!-- Logo / Wordmark -->
-      <div class="topbar__brand" routerLink="/dashboard">
-        <span class="topbar__logo-icon">🏫</span>
+      <!-- Brand Logo -->
+      <a class="topbar__brand" routerLink="/dashboard">
+        <div class="topbar__logo-icon">⚡</div>
         <span class="topbar__logo-text">StudyRoom</span>
+        <span class="topbar__beta-badge">PRO</span>
+      </a>
+
+      <!-- Navigation Link to Profile -->
+      <div class="topbar__streak-pill" routerLink="/profile" title="View Study Profile">
+        <span class="streak-flame">📊</span>
+        <span class="streak-text">Study Profile</span>
       </div>
 
-      <!-- User Profile & Dropdown -->
-      @if (currentUser()) {
-        <div class="topbar__user-menu">
-          <button class="topbar__profile-trigger" (click)="toggleDropdown($event)">
-            <span class="topbar__username">{{ currentUser()?.name }}</span>
-            <div class="topbar__avatar">
-              {{ getUserInitials() }}
-            </div>
-            <span class="topbar__caret">▼</span>
-          </button>
+      <!-- Actions Right -->
+      <div class="topbar__actions">
+        <!-- Theme Switcher -->
+        <button
+          class="topbar__theme-btn"
+          (click)="themeService.toggleTheme()"
+          [title]="'Switch to ' + (themeService.currentTheme() === 'dark' ? 'Light' : 'Dark') + ' Mode'"
+        >
+          <span>{{ themeService.currentTheme() === 'dark' ? '☀️' : '🌙' }}</span>
+        </button>
 
-          <!-- Dropdown menu -->
-          @if (dropdownOpen()) {
-            <div class="dropdown-menu" (click)="$event.stopPropagation()">
-              <a routerLink="/profile" class="dropdown-item" (click)="closeDropdown()">
-                <span class="dropdown-item__icon">👤</span> Profile
-              </a>
-              <hr class="dropdown-divider" />
-              <button class="dropdown-item dropdown-item--logout" (click)="logout()">
-                <span class="dropdown-item__icon">🚪</span> Log out
-              </button>
-            </div>
-          }
-        </div>
-      }
-    </div>
-  </header>
+        <!-- Profile Dropdown -->
+        @if (currentUser()) {
+          <div class="topbar__user-menu">
+            <button class="topbar__profile-trigger" (click)="toggleDropdown($event)">
+              <div class="topbar__avatar">
+                {{ getUserInitials() }}
+              </div>
+              <span class="topbar__username">{{ currentUser()?.name }}</span>
+              <span class="topbar__caret">▾</span>
+            </button>
 
-  <!-- Main Content Area -->
-  <main class="dashboard-main container">
-    <!-- Greeting Header -->
-    <header class="greeting-header" appScrollReveal [revealDelay]="1" [revealSpring]="true">
-      <h1 class="greeting-header__title">Welcome back, {{ currentUser()?.name || 'Student' }}.</h1>
-      <p class="greeting-header__subtext">Here's what's happening right now in your study spaces.</p>
-    </header>
-
-
-
-    <!-- All Rooms Section -->
-    <section class="dashboard-section all-rooms-section" appScrollReveal [revealDelay]="2" [revealSpring]="true">
-      <div class="section-heading section-heading--spaced">
-        <h2 class="section-heading__title">All Study Rooms</h2>
-        <p class="section-heading__subtitle">Find a room that matches your vibe and join others studying live.</p>
-      </div>
-
-      <!-- Loading State -->
-      @if (isLoading()) {
-        <div class="loading-state">
-          <div class="spinner"></div>
-          <p>Finding rooms...</p>
-        </div>
-      } @else {
-        <!-- Rooms Grid -->
-        @if (rooms().length > 0) {
-          <div class="rooms-grid">
-            @for (room of rooms(); track room.id) {
-              <div class="grid-item">
-                <app-room-card [room]="room"></app-room-card>
+            @if (dropdownOpen()) {
+              <div class="dropdown-menu glass-panel" (click)="$event.stopPropagation()">
+                <div class="dropdown-header">
+                  <span class="dropdown-user-name">{{ currentUser()?.name }}</span>
+                  <span class="dropdown-user-email">{{ currentUser()?.email || 'Student' }}</span>
+                </div>
+                <hr class="dropdown-divider" />
+                <a routerLink="/profile" class="dropdown-item" (click)="closeDropdown()">
+                  <span class="dropdown-item__icon">📊</span> Study Profile & Stats
+                </a>
+                <a routerLink="/dashboard" class="dropdown-item" (click)="closeDropdown()">
+                  <span class="dropdown-item__icon">🏫</span> Browse Rooms
+                </a>
+                <hr class="dropdown-divider" />
+                <button class="dropdown-item dropdown-item--logout" (click)="logout()">
+                  <span class="dropdown-item__icon">🚪</span> Log out
+                </button>
               </div>
             }
           </div>
+        }
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Dashboard Container -->
+  <main class="dashboard-main container">
+    <!-- Hero Banner Greeting -->
+    <header class="greeting-banner glass-panel">
+      <div class="greeting-banner__content">
+        <h1 class="greeting-banner__title">
+          Welcome back, {{ currentUser()?.name || 'Student' }}! 👋
+        </h1>
+        <p class="greeting-banner__subtitle">
+          Join an active virtual study space or create a new room for your study group.
+        </p>
+        <div class="greeting-banner__quick-stats">
+          <div class="stat-pill">
+            <span class="stat-pill__icon">🏫</span>
+            <span><strong>{{ rooms().length }}</strong> active study {{ rooms().length === 1 ? 'room' : 'rooms' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="greeting-banner__action">
+        <button class="btn btn--accent btn--lg btn--shine" (click)="openCreateModal()">
+          <span>➕ Create Room</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Room Browser Filter Toolbar -->
+    <section class="browser-toolbar">
+      <div class="category-pills">
+        @for (cat of categories; track cat.value) {
+          <button
+            class="pill-btn"
+            [class.active]="selectedCategory() === cat.value"
+            (click)="setCategory(cat.value)"
+          >
+            {{ cat.label }}
+          </button>
+        }
+      </div>
+
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Search rooms by title or topic..."
+          [value]="searchQuery()"
+          (input)="updateSearch($event)"
+        />
+      </div>
+    </section>
+
+    <!-- Rooms Display Grid -->
+    <section class="rooms-section">
+      @if (isLoading()) {
+        <!-- Skeleton Grid -->
+        <div class="rooms-grid">
+          @for (i of [1,2,3,4]; track i) {
+            <div class="skeleton-card skeleton"></div>
+          }
+        </div>
+      } @else {
+        @if (filteredRooms().length > 0) {
+          <div class="rooms-grid">
+            @for (room of filteredRooms(); track room.id; let i = $index) {
+              <app-room-card [room]="room" [cardIndex]="i"></app-room-card>
+            }
+          </div>
         } @else {
-          <!-- Empty State -->
-          <div class="empty-state">
-            <div class="empty-state__icon">🔍</div>
-            <h3 class="empty-state__title">No rooms available</h3>
-            <p class="empty-state__description">
-              There are no active study rooms right now. Check back later!
+          <!-- Dynamic Empty State -->
+          <div class="empty-state glass-panel">
+            <div class="empty-state__icon">🏫</div>
+            <h3 class="empty-state__title">No active study rooms right now</h3>
+            <p class="empty-state__desc">
+              Be the first to launch a room and invite your friends or classmates to study together!
             </p>
+            <button class="btn btn--primary btn--lg btn--shine" (click)="openCreateModal()">
+              🚀 Launch a Study Room
+            </button>
           </div>
         }
       }
     </section>
   </main>
 </div>
+
+<!-- Create Room Modal Dialog -->
+@if (createModalOpen()) {
+  <app-create-room-modal
+    (closeModal)="closeCreateModal()"
+    (roomCreated)="closeCreateModal(); roomService.loadRooms()"
+  ></app-create-room-modal>
+}

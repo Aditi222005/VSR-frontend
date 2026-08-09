@@ -1,0 +1,107 @@
+<div class="modal-backdrop" (click)="onClose()">
+  <div class="modal-card glass-panel" (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <div class="modal-header">
+      <div class="modal-title-wrap">
+        <span class="modal-badge">✨ New Space</span>
+        <h2 class="modal-title">Create a Virtual Study Room</h2>
+        <p class="modal-subtitle">Set up a live space for you and other students to study together.</p>
+      </div>
+      <button class="modal-close" (click)="onClose()" aria-label="Close modal">✕</button>
+    </div>
+
+    <!-- Body / Form -->
+    <form (submit)="onSubmit(); $event.preventDefault();" class="modal-body">
+      @if (errorMessage()) {
+        <div class="modal-error">
+          <span>⚠️ {{ errorMessage() }}</span>
+        </div>
+      }
+
+      <!-- Room Title -->
+      <div class="form-group">
+        <label for="roomName">Room Title *</label>
+        <input
+          id="roomName"
+          type="text"
+          class="form-control"
+          placeholder="e.g. Late Night Algorithms & Data Structures"
+          [ngModel]="name()"
+          (ngModelChange)="name.set($event)"
+          name="name"
+          required
+        />
+      </div>
+
+      <!-- Room Description -->
+      <div class="form-group">
+        <label for="roomDesc">Description & Focus Goal *</label>
+        <textarea
+          id="roomDesc"
+          class="form-control form-control--textarea"
+          rows="3"
+          placeholder="Describe the focus topic, study method, or quiet rules..."
+          [ngModel]="description()"
+          (ngModelChange)="description.set($event)"
+          name="description"
+          required
+        ></textarea>
+      </div>
+
+      <!-- Subject Category Selector -->
+      <div class="form-group">
+        <label>Subject Category</label>
+        <div class="category-grid">
+          @for (cat of categories; track cat.value) {
+            <button
+              type="button"
+              class="cat-option"
+              [class.active]="roomType() === cat.value"
+              (click)="roomType.set(cat.value)"
+            >
+              <span class="cat-option__label">{{ cat.label }}</span>
+              <span class="cat-option__desc">{{ cat.desc }}</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Capacity & Options -->
+      <div class="form-row">
+        <div class="form-group flex-1">
+          <label for="capacity">Seat Capacity</label>
+          <div class="select-wrapper">
+            <select
+              id="capacity"
+              class="form-control"
+              [ngModel]="capacity()"
+              (ngModelChange)="capacity.set(+$event)"
+              name="capacity"
+            >
+              <option [value]="5">5 Students (Small group)</option>
+              <option [value]="10">10 Students (Standard)</option>
+              <option [value]="20">20 Students (Large study hall)</option>
+              <option [value]="50">50 Students (Open library)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group flex-1">
+          <label for="music">Ambient Background Music</label>
+          <div class="toggle-control" (click)="musicEnabled.set(!musicEnabled())">
+            <span class="toggle-switch" [class.on]="musicEnabled()"></span>
+            <span class="toggle-label">{{ musicEnabled() ? '🎶 Lofi Beats Enabled' : '🔇 Silent Focus Only' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn--secondary" (click)="onClose()">Cancel</button>
+        <button type="submit" class="btn btn--primary btn--lg" [disabled]="isSubmitting()">
+          {{ isSubmitting() ? 'Creating Room...' : '🚀 Launch Study Room' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

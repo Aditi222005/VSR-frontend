@@ -1,0 +1,65 @@
+<div class="profile-shell">
+  <!-- Top Bar Layout Header -->
+  <header class="topbar glass-panel">
+    <div class="container topbar__inner">
+      <a class="topbar__brand" routerLink="/dashboard">
+        <div class="topbar__logo-icon">⚡</div>
+        <span class="topbar__logo-text">StudyRoom</span>
+      </a>
+
+      <div class="topbar__actions">
+        <button class="btn btn--outline btn--sm" routerLink="/dashboard">
+          ← Back to Rooms
+        </button>
+        <button
+          class="topbar__theme-btn"
+          (click)="themeService.toggleTheme()"
+          [title]="'Switch Theme'"
+        >
+          {{ themeService.currentTheme() === 'dark' ? '☀️' : '🌙' }}
+        </button>
+        <button class="btn btn--secondary btn--sm" (click)="logout()">
+          Logout
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Profile Container -->
+  <main class="profile-main container">
+    <!-- User Profile Header Card -->
+    <section class="user-header-card glass-panel">
+      <div class="user-header-card__inner">
+        <div class="user-avatar">
+          {{ getUserInitials() }}
+        </div>
+        <div class="user-info">
+          <div class="name-badge-row">
+            <h1 class="user-name">{{ currentUser()?.name || 'Student' }}</h1>
+            <span class="badge badge--emerald">Active Student</span>
+          </div>
+          <p class="user-email">{{ currentUser()?.email || 'Student' }}</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Key Stats Highlights Grid -->
+    <section class="stats-grid">
+      <div class="stat-card glass-panel">
+        <div class="stat-card__icon rooms-icon">🏫</div>
+        <div class="stat-card__content">
+          <span class="stat-card__val">{{ roomService.rooms().length }}</span>
+          <span class="stat-card__lbl">Active Rooms Available</span>
+        </div>
+      </div>
+
+      <div class="stat-card glass-panel">
+        <div class="stat-card__icon notes-icon">📝</div>
+        <div class="stat-card__content">
+          <span class="stat-card__val">{{ sessionNotesCount() }}</span>
+          <span class="stat-card__lbl">Personal Saved Notes</span>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
