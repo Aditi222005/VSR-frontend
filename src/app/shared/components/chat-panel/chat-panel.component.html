@@ -1,5 +1,26 @@
 <div class="chat">
 
+  <!-- Active Members Bar -->
+  @if (participants.length > 0) {
+    <div class="chat__members-bar">
+      <div class="chat__members-label">
+        <span class="chat__members-dot"></span>
+        <span>{{ participants.length }} Online</span>
+      </div>
+      <div class="chat__members-list">
+        @for (p of participants; track p.userId) {
+          <div class="chat__member-chip" [title]="p.username">
+            <div class="chat__member-avatar">
+              {{ p.username.substring(0, 2).toUpperCase() }}
+            </div>
+            <span class="chat__member-name">{{ p.username }}</span>
+            <span class="chat__member-online"></span>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
   <!-- Message List -->
   <div class="chat__messages" #messageList>
 

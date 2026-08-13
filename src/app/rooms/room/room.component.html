@@ -252,7 +252,7 @@
 
         <div class="sidebar-tab-content">
           @if (activeTab() === 'chat') {
-            <app-chat-panel [roomId]="roomId" class="fill"></app-chat-panel>
+            <app-chat-panel [roomId]="roomId" [participants]="wsParticipants()" class="fill"></app-chat-panel>
           }
           @if (activeTab() === 'participants') {
             <div class="participants-panel">

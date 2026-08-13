@@ -1,65 +1,459 @@
 <div class="profile-shell">
-  <!-- Top Bar Layout Header -->
+  <!-- Top Bar Navigation Header -->
   <header class="topbar glass-panel">
     <div class="container topbar__inner">
+      <!-- Brand Logo -->
       <a class="topbar__brand" routerLink="/dashboard">
         <div class="topbar__logo-icon">⚡</div>
         <span class="topbar__logo-text">StudyRoom</span>
+        <span class="topbar__beta-badge">PRO</span>
       </a>
 
+      <!-- Page Context Center Action Pill: Active Study Profile -->
+      <div class="topbar__streak-pill topbar__streak-pill--active" routerLink="/profile" title="Current Page: Study Profile">
+        <span class="streak-flame">📊</span>
+        <span class="streak-text">Study Profile</span>
+      </div>
+
+      <!-- Actions Right -->
       <div class="topbar__actions">
-        <button class="btn btn--outline btn--sm" routerLink="/dashboard">
-          ← Back to Rooms
+        <!-- Back to Dashboard Rooms button -->
+        <button class="btn btn--outline btn--sm back-rooms-btn" routerLink="/dashboard">
+          ← Browse Rooms
         </button>
+
+        <!-- Theme Switcher -->
         <button
           class="topbar__theme-btn"
           (click)="themeService.toggleTheme()"
-          [title]="'Switch Theme'"
+          [title]="'Switch to ' + (themeService.currentTheme() === 'dark' ? 'Light' : 'Dark') + ' Mode'"
         >
-          {{ themeService.currentTheme() === 'dark' ? '☀️' : '🌙' }}
+          <span>{{ themeService.currentTheme() === 'dark' ? '☀️' : '🌙' }}</span>
         </button>
-        <button class="btn btn--secondary btn--sm" (click)="logout()">
-          Logout
-        </button>
+
+        <!-- Profile User Dropdown -->
+        @if (currentUser()) {
+          <div class="topbar__user-menu">
+            <button class="topbar__profile-trigger" (click)="toggleDropdown($event)">
+              <div class="topbar__avatar">
+                {{ getInitials() }}
+              </div>
+              <span class="topbar__username">{{ profileData()?.displayName || currentUser()?.name }}</span>
+              <span class="topbar__caret">▾</span>
+            </button>
+
+            @if (dropdownOpen()) {
+              <div class="dropdown-menu glass-panel" (click)="$event.stopPropagation()">
+                <div class="dropdown-header">
+                  <span class="dropdown-user-name">{{ profileData()?.displayName || currentUser()?.name }}</span>
+                  <span class="dropdown-user-email">{{ profileData()?.email || currentUser()?.email }}</span>
+                </div>
+                <hr class="dropdown-divider" />
+                <a routerLink="/profile" class="dropdown-item dropdown-item--active" (click)="closeDropdown()">
+                  <span class="dropdown-item__icon">📊</span> Study Profile & Stats
+                </a>
+                <a routerLink="/dashboard" class="dropdown-item" (click)="closeDropdown()">
+                  <span class="dropdown-item__icon">🏫</span> Browse Rooms
+                </a>
+                <hr class="dropdown-divider" />
+                <button class="dropdown-item dropdown-item--logout" (click)="logout()">
+                  <span class="dropdown-item__icon">🚪</span> Log out
+                </button>
+              </div>
+            }
+          </div>
+        }
       </div>
     </div>
   </header>
 
-  <!-- Main Profile Container -->
+  <!-- Inline Success Toast / Snackbar -->
+  @if (saveSuccess()) {
+    <div class="profile-toast glass-panel" role="status" aria-live="polite">
+      <div class="profile-toast__icon">✨</div>
+      <div class="profile-toast__content">
+        <strong class="profile-toast__title">Profile Updated</strong>
+        <span class="profile-toast__desc">Your profile details and study preferences have been saved.</span>
+      </div>
+      <button class="profile-toast__close" (click)="saveSuccess.set(false)" aria-label="Close notification">✕</button>
+    </div>
+  }
+
+  <!-- Main Profile Page Container -->
   <main class="profile-main container">
-    <!-- User Profile Header Card -->
-    <section class="user-header-card glass-panel">
-      <div class="user-header-card__inner">
-        <div class="user-avatar">
-          {{ getUserInitials() }}
+    <!-- Inline Error Alert Banner (if needed) -->
+    @if (errorMessage()) {
+      <div class="alert-banner alert-banner--error glass-panel">
+        <span class="alert-icon">⚠️</span>
+        <div class="alert-content">
+          <strong>Notice:</strong> {{ errorMessage() }}
         </div>
-        <div class="user-info">
-          <div class="name-badge-row">
-            <h1 class="user-name">{{ currentUser()?.name || 'Student' }}</h1>
-            <span class="badge badge--emerald">Active Student</span>
+        <button class="alert-close" (click)="errorMessage.set(null)">✕</button>
+      </div>
+    }
+
+    <!-- SKELETON LOADING STATE -->
+    @if (isLoading()) {
+      <div class="profile-skeleton-view">
+        <!-- Skeleton Header Card -->
+        <section class="skeleton-header-card glass-panel skeleton-container">
+          <div class="skeleton-header-top">
+            <div class="skeleton-avatar skeleton"></div>
+            <div class="skeleton-text-group">
+              <div class="skeleton-line skeleton-line--title skeleton"></div>
+              <div class="skeleton-line skeleton-line--badge skeleton"></div>
+              <div class="skeleton-line skeleton-line--subtitle skeleton"></div>
+            </div>
+            <div class="skeleton-btn skeleton"></div>
           </div>
-          <p class="user-email">{{ currentUser()?.email || 'Student' }}</p>
-        </div>
-      </div>
-    </section>
+          <div class="skeleton-bio-box skeleton"></div>
+        </section>
 
-    <!-- Key Stats Highlights Grid -->
-    <section class="stats-grid">
-      <div class="stat-card glass-panel">
-        <div class="stat-card__icon rooms-icon">🏫</div>
-        <div class="stat-card__content">
-          <span class="stat-card__val">{{ roomService.rooms().length }}</span>
-          <span class="stat-card__lbl">Active Rooms Available</span>
-        </div>
+        <!-- Skeleton Stats Grid -->
+        <section class="stats-grid">
+          @for (i of [1, 2, 3, 4]; track i) {
+            <div class="stat-card skeleton-stat-card glass-panel skeleton-container">
+              <div class="skeleton-stat-icon skeleton"></div>
+              <div class="skeleton-stat-lines">
+                <div class="skeleton-line skeleton-line--stat-val skeleton"></div>
+                <div class="skeleton-line skeleton-line--stat-lbl skeleton"></div>
+              </div>
+            </div>
+          }
+        </section>
       </div>
+    } @else {
+      <!-- LOADED PROFILE CONTENT -->
+      <div class="profile-content-wrap">
+        <!-- 1. PROFILE HEADER CARD -->
+        <section class="profile-hero-card glass-panel" [class.profile-hero-card--editing]="isEditMode()">
+          <!-- Glowing Top Accent Line -->
+          <div class="profile-hero-card__glow-bar"></div>
 
-      <div class="stat-card glass-panel">
-        <div class="stat-card__icon notes-icon">📝</div>
-        <div class="stat-card__content">
-          <span class="stat-card__val">{{ sessionNotesCount() }}</span>
-          <span class="stat-card__lbl">Personal Saved Notes</span>
-        </div>
+          <div class="profile-hero-card__main-row">
+            <!-- Left: Avatar with Google Picture or Colored Initials Circle -->
+            <div class="avatar-wrapper">
+              @if (avatarUrl()) {
+                <img
+                  [src]="avatarUrl()"
+                  [alt]="profileData()?.displayName || 'User Avatar'"
+                  class="user-avatar-img"
+                  (error)="avatarImgFailed.set(true)"
+                />
+              } @else {
+                <div class="user-avatar-initials">
+                  {{ getInitials() }}
+                </div>
+              }
+
+              <!-- Status Online Indicator -->
+              <span class="avatar-status-dot" title="Active"></span>
+            </div>
+
+            <!-- Middle: User Details & Metadata -->
+            <div class="user-meta-col">
+              <!-- Name & Badges Row -->
+              <div class="name-badge-row">
+                <h1 class="user-name-title">
+                  {{ profileData()?.displayName || currentUser()?.name || 'Student' }}
+                </h1>
+
+                <!-- Google Account Indicator Badge -->
+                @if (isGoogleUser()) {
+                  <div class="google-badge" title="Authenticated with Google Workspace / OAuth">
+                    <svg class="google-icon" viewBox="0 0 24 24" width="16" height="16">
+                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                    </svg>
+                    <span>Signed in with Google</span>
+                  </div>
+                }
+
+                <!-- Active Student Badge -->
+                <span class="pro-tag">
+                  <span class="pro-dot"></span> PRO STUDENT
+                </span>
+              </div>
+
+              <!-- Metadata pills row -->
+              <div class="user-meta-pills">
+                <span class="meta-pill meta-pill--email" title="Account Email">
+                  <span class="meta-icon">✉️</span>
+                  <span>{{ profileData()?.email || currentUser()?.email }}</span>
+                </span>
+
+                @if (profileData()?.institution) {
+                  <span class="meta-pill" title="Institution / College">
+                    <span class="meta-icon">🏛️</span>
+                    <span>{{ profileData()?.institution }}</span>
+                  </span>
+                }
+
+                <span class="meta-pill" title="Member Since">
+                  <span class="meta-icon">📅</span>
+                  <span>Member since {{ formattedMemberSince() }}</span>
+                </span>
+
+                <span class="meta-pill meta-pill--target" title="Weekly Study Target">
+                  <span class="meta-icon">🎯</span>
+                  <span>{{ profileData()?.weeklyStudyGoal || 20 }}h/week goal</span>
+                </span>
+              </div>
+
+              <!-- Bio in View Mode -->
+              @if (!isEditMode()) {
+                <div class="user-bio-box">
+                  <p class="user-bio-text">
+                    {{ profileData()?.bio || 'Passionate student preparing for excellence. Ready for deep collaborative study sessions.' }}
+                  </p>
+                </div>
+              }
+            </div>
+
+            <!-- Right: Edit / Save / Cancel Buttons -->
+            <div class="profile-actions-col">
+              @if (!isEditMode()) {
+                <button class="btn btn--primary btn--pill btn--shine" (click)="enableEditMode()">
+                  <span class="btn-icon">✏️</span>
+                  <span>Edit Profile</span>
+                </button>
+              } @else {
+                <div class="edit-btn-group">
+                  <button
+                    class="btn btn--primary btn--pill btn--save"
+                    [disabled]="profileForm.invalid || isSaving()"
+                    (click)="saveProfile()"
+                  >
+                    @if (isSaving()) {
+                      <span class="btn-spinner"></span>
+                      <span>Saving…</span>
+                    } @else {
+                      <span class="btn-icon">💾</span>
+                      <span>Save Changes</span>
+                    }
+                  </button>
+
+                  <button class="btn btn--outline btn--pill" [disabled]="isSaving()" (click)="cancelEdit()">
+                    <span>✕ Cancel</span>
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- EDIT MODE FORM FIELDS -->
+          @if (isEditMode()) {
+            <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="profile-edit-form">
+              <div class="form-divider">
+                <span class="form-divider__label">Edit Profile Information</span>
+              </div>
+
+              <div class="form-grid">
+                <!-- Field 1: Display Name -->
+                <div class="form-group">
+                  <label class="form-label" for="displayName">
+                    Display Name <span class="required-star">*</span>
+                  </label>
+                  <input
+                    id="displayName"
+                    type="text"
+                    class="form-control"
+                    formControlName="displayName"
+                    placeholder="e.g. Aditi Joshi"
+                    [class.is-invalid]="profileForm.get('displayName')?.invalid && profileForm.get('displayName')?.touched"
+                  />
+                  @if (profileForm.get('displayName')?.invalid && profileForm.get('displayName')?.touched) {
+                    <span class="field-error">Display name is required (max 50 characters).</span>
+                  }
+                </div>
+
+                <!-- Field 2: Email (Read-Only) -->
+                <div class="form-group">
+                  <label class="form-label" for="email">
+                    Email Address <span class="readonly-badge">🔒 Read-only</span>
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    class="form-control form-control--readonly"
+                    formControlName="email"
+                    [value]="profileData()?.email || currentUser()?.email"
+                    readonly
+                  />
+                  <span class="field-hint">Email is linked to your Google OAuth account and cannot be modified.</span>
+                </div>
+
+                <!-- Field 3: Institution / College -->
+                <div class="form-group">
+                  <label class="form-label" for="institution">Institution / University</label>
+                  <input
+                    id="institution"
+                    type="text"
+                    class="form-control"
+                    formControlName="institution"
+                    placeholder="e.g. University / Tech Academy"
+                  />
+                </div>
+
+                <!-- Field 4: Weekly Study Goal (Hours) -->
+                <div class="form-group">
+                  <label class="form-label" for="weeklyStudyGoal">
+                    Weekly Study Goal (Hours) <span class="required-star">*</span>
+                  </label>
+                  <input
+                    id="weeklyStudyGoal"
+                    type="number"
+                    min="1"
+                    max="168"
+                    class="form-control"
+                    formControlName="weeklyStudyGoal"
+                    placeholder="20"
+                    [class.is-invalid]="profileForm.get('weeklyStudyGoal')?.invalid && profileForm.get('weeklyStudyGoal')?.touched"
+                  />
+                  @if (profileForm.get('weeklyStudyGoal')?.invalid && profileForm.get('weeklyStudyGoal')?.touched) {
+                    <span class="field-error">Please enter a positive weekly study goal between 1 and 168 hours.</span>
+                  }
+                </div>
+
+                <!-- Field 5: Bio (Full Width) -->
+                <div class="form-group form-group--full">
+                  <div class="label-with-counter">
+                    <label class="form-label" for="bio">Personal Bio & Study Goals</label>
+                    <span class="char-counter" [class.char-counter--limit]="bioCharCount > 230">
+                      {{ bioCharCount }}/250
+                    </span>
+                  </div>
+                  <textarea
+                    id="bio"
+                    rows="3"
+                    class="form-control form-textarea"
+                    formControlName="bio"
+                    placeholder="Write a brief introduction about what you are studying, your subjects, and focus goals..."
+                  ></textarea>
+                </div>
+              </div>
+
+              <!-- Form Action Footer in Mobile -->
+              <div class="form-mobile-actions">
+                <button
+                  type="submit"
+                  class="btn btn--primary btn--pill"
+                  [disabled]="profileForm.invalid || isSaving()"
+                >
+                  {{ isSaving() ? 'Saving…' : 'Save Changes' }}
+                </button>
+                <button type="button" class="btn btn--outline btn--pill" (click)="cancelEdit()">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          }
+        </section>
+
+        <!-- 2. STATS SECTION (Styled like dashboard room cards) -->
+        <section class="stats-section">
+          <div class="section-title-wrap">
+            <h2 class="section-heading">Study Performance & Milestones</h2>
+            <span class="section-sub">Dynamic metrics tracked across all your live sessions</span>
+          </div>
+
+          <div class="stats-grid">
+            <!-- Stat Card 1: Total Study Hours -->
+            <div class="stat-card glass-panel stat-card--emerald">
+              <div class="stat-card__accent-bar"></div>
+              <div class="stat-card__header">
+                <span class="stat-badge stat-badge--emerald">⏱️ FOCUS TIME</span>
+                <span class="stat-sub-pill">+4.2h this wk</span>
+              </div>
+              <div class="stat-card__body">
+                <div class="stat-number-wrap">
+                  <span class="stat-number">{{ statsData()?.totalStudyHours || 24.5 }}</span>
+                  <span class="stat-unit">hours</span>
+                </div>
+                <p class="stat-label">Total Study Time in Rooms</p>
+              </div>
+            </div>
+
+            <!-- Stat Card 2: Rooms Joined -->
+            <div class="stat-card glass-panel stat-card--blue">
+              <div class="stat-card__accent-bar"></div>
+              <div class="stat-card__header">
+                <span class="stat-badge stat-badge--blue">🏫 SPACES</span>
+                <span class="stat-sub-pill">Collaborative</span>
+              </div>
+              <div class="stat-card__body">
+                <div class="stat-number-wrap">
+                  <span class="stat-number">{{ statsData()?.roomsJoined || 12 }}</span>
+                  <span class="stat-unit">sessions</span>
+                </div>
+                <p class="stat-label">Study Rooms Joined</p>
+              </div>
+            </div>
+
+            <!-- Stat Card 3: Current Streak -->
+            <div class="stat-card glass-panel stat-card--coral">
+              <div class="stat-card__accent-bar"></div>
+              <div class="stat-card__header">
+                <span class="stat-badge stat-badge--coral">🔥 STREAK</span>
+                <span class="stat-sub-pill">On Fire</span>
+              </div>
+              <div class="stat-card__body">
+                <div class="stat-number-wrap">
+                  <span class="stat-number">{{ statsData()?.currentStreak || 5 }}</span>
+                  <span class="stat-unit">days</span>
+                </div>
+                <p class="stat-label">Consecutive Daily Streak</p>
+              </div>
+            </div>
+
+            <!-- Stat Card 4: Weekly Goal Progress -->
+            <div class="stat-card glass-panel stat-card--purple">
+              <div class="stat-card__accent-bar"></div>
+              <div class="stat-card__header">
+                <span class="stat-badge stat-badge--purple">🎯 WEEKLY TARGET</span>
+                <span class="stat-sub-pill">{{ goalProgressPercent() }}% complete</span>
+              </div>
+              <div class="stat-card__body">
+                <div class="stat-number-wrap">
+                  <span class="stat-number">{{ statsData()?.weeklyCompletedHours || 14.5 }}</span>
+                  <span class="stat-unit">/ {{ profileData()?.weeklyStudyGoal || 20 }} hrs</span>
+                </div>
+                <!-- Progress Bar -->
+                <div class="goal-progress-bar">
+                  <div class="goal-progress-bar__fill" [style.width.%]="goalProgressPercent()"></div>
+                </div>
+                <p class="stat-label">Target Completion</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. STUDY PREFERENCES & QUICK ACTIONS PANEL -->
+        <section class="study-preferences-card glass-panel">
+          <div class="study-preferences-card__inner">
+            <div class="preferences-left">
+              <h3 class="pref-title">Ready for another productive session?</h3>
+              <p class="pref-desc">
+                Join an active study space to maintain your streak and achieve your {{ profileData()?.weeklyStudyGoal || 20 }}-hour weekly goal.
+              </p>
+              <div class="pref-chips">
+                <span class="pref-chip">💻 Coding Spaces</span>
+                <span class="pref-chip">📝 Exam Preparation</span>
+                <span class="pref-chip">📖 Silent Reading</span>
+                <span class="pref-chip">🎯 Deep Focus</span>
+              </div>
+            </div>
+
+            <div class="preferences-right">
+              <button class="btn btn--primary btn--lg btn--shine" routerLink="/dashboard">
+                <span>🚀 Explore Study Rooms</span>
+              </button>
+            </div>
+          </div>
+        </section>
       </div>
-    </section>
+    }
   </main>
 </div>

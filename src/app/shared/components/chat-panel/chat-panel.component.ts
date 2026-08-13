@@ -8,6 +8,7 @@ import { WebSocketService } from '../../../core/services/websocket/websocket.ser
 import { AuthService } from '../../../core/services/auth.service';
 import { ChatMessage } from '../../../core/models/chat-message.model';
 import { ChatService } from '../../../core/services/chat.service';
+import { Participant } from '../../../core/models/participant.model';
 
 @Component({
   selector: 'app-chat-panel',
@@ -18,6 +19,7 @@ import { ChatService } from '../../../core/services/chat.service';
 })
 export class ChatPanelComponent implements OnInit, OnDestroy, AfterViewChecked {
   @Input({ required: true }) roomId!: number;
+  @Input() participants: Participant[] = [];
   @ViewChild('messageList') messageList!: ElementRef<HTMLDivElement>;
 
   private ws = inject(WebSocketService);

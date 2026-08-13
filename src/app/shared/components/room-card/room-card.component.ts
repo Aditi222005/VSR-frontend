@@ -1,8 +1,9 @@
-import { Component, Input, signal, computed } from '@angular/core';
+import { Component, Input, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Room } from '../../../core/models/room.model';
 import { RoomService } from '../../../core/services/room.service';
+import { JoinRoomResponse } from '../../../core/models/join-room-response.model';
 
 @Component({
   selector: 'app-room-card',
@@ -11,15 +12,27 @@ import { RoomService } from '../../../core/services/room.service';
   templateUrl: './room-card.component.html',
   styleUrl: './room-card.component.scss',
 })
-export class RoomCardComponent {
+export class RoomCardComponent implements OnInit {
   @Input({ required: true }) room!: Room;
   @Input() isRecommended = false;
   @Input() cardIndex = 0;
 
   isJoining = signal(false);
   errorMessage = signal<string | null>(null);
+  members = signal<JoinRoomResponse[]>([]);
+
+  /** Slice to max 4 avatars for display */
+  visibleMembers = computed(() => this.members().slice(0, 4));
+  extraCount = computed(() => Math.max(0, this.members().length - 4));
 
   constructor(private router: Router, private roomService: RoomService) {}
+
+  ngOnInit(): void {
+    this.roomService.getRoomMembers(this.room.id).subscribe({
+      next: (list) => this.members.set(list ?? []),
+      error: () => this.members.set([])
+    });
+  }
 
   joinRoom(event: Event): void {
     event.stopPropagation();
@@ -62,22 +75,17 @@ export class RoomCardComponent {
     }
   }
 
-  /** Generate seeded avatar initials from room name for visual variety */
-  getAvatarInitials(): string[] {
-    const seedNames = ['AL', 'JK', 'MR', 'PS', 'KD', 'NV', 'TS', 'RW'];
-    // Use room id as a seed to deterministically pick 2-4 "participants"
-    const count = 2 + (this.room.id % 3); // 2, 3, or 4
-    const start = this.room.id % seedNames.length;
-    const result: string[] = [];
-    for (let i = 0; i < count; i++) {
-      result.push(seedNames[(start + i) % seedNames.length]);
-    }
-    return result;
+  /** Get initials for a member's avatar */
+  getMemberInitials(member: JoinRoomResponse): string {
+    const name = member.username || '';
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return name.substring(0, 2).toUpperCase();
   }
 
-  /** Get a seeded hue for an avatar based on its index + room id */
-  getAvatarHue(index: number): number {
-    return ((this.room.id * 47 + index * 83) % 360);
+  /** Get a deterministic hue for an avatar based on userId */
+  getAvatarHue(userId: number): number {
+    return ((userId * 47 + this.room.id * 83) % 360);
   }
 
   /** Visual capacity indicator */

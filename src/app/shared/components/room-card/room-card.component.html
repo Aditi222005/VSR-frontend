@@ -34,26 +34,39 @@
     <div class="room-card__people">
       <!-- Stacked avatar circles -->
       <div class="avatar-stack">
-        @for (initials of getAvatarInitials(); track initials; let i = $index) {
-          <div
-            class="avatar-circle"
-            [style.--avatar-hue]="getAvatarHue(i)"
-            [style.z-index]="10 - i"
-          >
-            {{ initials }}
+        @if (visibleMembers().length > 0) {
+          @for (member of visibleMembers(); track member.userId; let i = $index) {
+            <div
+              class="avatar-circle"
+              [style.--avatar-hue]="getAvatarHue(member.userId)"
+              [style.z-index]="10 - i"
+              [title]="member.username"
+            >
+              {{ getMemberInitials(member) }}
+            </div>
+          }
+          @if (extraCount() > 0) {
+            <div class="avatar-more">+{{ extraCount() }}</div>
+          }
+        } @else {
+          <div class="avatar-circle avatar-circle--empty" style="--avatar-hue: 220">
+            🌟
           </div>
         }
-        <div class="avatar-more">+</div>
       </div>
 
       <!-- Activity text with animated dots -->
       <div class="activity-line">
-        <span class="activity-text">{{ getActivityText() }}</span>
-        <span class="activity-dots">
-          <span class="dot"></span>
-          <span class="dot"></span>
-          <span class="dot"></span>
-        </span>
+        @if (members().length > 0) {
+          <span class="activity-text">{{ getActivityText() }}</span>
+          <span class="activity-dots">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </span>
+        } @else {
+          <span class="activity-text">Be the first to join!</span>
+        }
       </div>
     </div>
   }

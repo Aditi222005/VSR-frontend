@@ -104,12 +104,29 @@ export class RoomComponent implements OnInit, OnDestroy {
 
     this.ws.connect();
 
+    // Seed the participant list immediately from REST API
+    this.roomService.getRoomMembers(this.roomId).subscribe({
+      next: (members) => {
+        if (members?.length) {
+          // Map JoinRoomResponse to Participant shape
+          this.wsParticipants.set(
+            members.map(m => ({ userId: m.userId, username: m.username }))
+          );
+        }
+      },
+      error: () => { }
+    });
+
     this.ws.subscribeToRoom(this.roomId, (event: RoomEvent) => {
       this.roomEvents.update(events => [event, ...events].slice(0, 100));
     });
 
-    this.ws.subscribeToParticipants(this.roomId, (event: RoomParticipantsEvent) => {
-      this.wsParticipants.set(event.participants);
+    this.ws.subscribeToParticipants(this.roomId, (event: RoomParticipantsEvent | Participant[]) => {
+      // Normalize: backend may send raw array OR { participants: [...] }
+      const list: Participant[] = Array.isArray(event)
+        ? (event as Participant[])
+        : ((event as RoomParticipantsEvent).participants ?? []);
+      this.wsParticipants.set(list);
     });
 
     const wasJoined = sessionStorage.getItem(`vsr_joined_room_${this.roomId}`) === 'true';

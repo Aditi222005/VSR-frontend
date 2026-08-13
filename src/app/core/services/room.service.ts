@@ -60,4 +60,8 @@ export class RoomService {
       {}
     );
   }
+
+  getRoomMembers(roomId: number): Observable<JoinRoomResponse[]> {
+    return this.http.get<JoinRoomResponse[]>(`${this.apiUrl}/${roomId}/members`);
+  }
 }
