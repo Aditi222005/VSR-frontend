@@ -42,13 +42,13 @@ export class RoomCardComponent implements OnInit {
     this.roomService.joinRoom(this.room.id).subscribe({
       next: (response) => {
         this.router.navigate(['/rooms', response.roomId || this.room.id], {
-          state: { roomName: response.roomName || this.room.name }
+          state: { roomName: response.roomName || this.room.name, roomType: this.room.roomType }
         }).then(() => this.isJoining.set(false));
       },
       error: (err) => {
         console.warn('[RoomCard] Join API notice, navigating directly to room:', err);
         this.router.navigate(['/rooms', this.room.id], {
-          state: { roomName: this.room.name }
+          state: { roomName: this.room.name, roomType: this.room.roomType }
         }).then(() => this.isJoining.set(false));
       }
     });

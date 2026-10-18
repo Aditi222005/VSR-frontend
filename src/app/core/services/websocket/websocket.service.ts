@@ -257,6 +257,22 @@ callback: (state: PomodoroState) => void
 
   }
 
+  requestPublicRoomState(roomId: number): void {
+
+    if (!this.client?.connected) {
+      console.warn('[WS] STOMP not connected – queuing public state request');
+      return;
+    }
+
+    console.log('[WS] Requesting public room state for room', roomId);
+
+    this.client.publish({
+      destination: '/app/pomodoro.public.state',
+      body: JSON.stringify(roomId)
+    });
+
+  }
+
   // --------------------------------------------------
   // Disconnect
   // --------------------------------------------------

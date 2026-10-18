@@ -35,3 +35,5 @@ export interface ProfileStats {
   weeklyGoalHours: number;
   weeklyCompletedHours: number;
 }
+
+export type ProfileStatsResponse = ProfileStats;

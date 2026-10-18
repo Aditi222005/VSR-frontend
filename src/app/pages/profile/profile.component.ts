@@ -181,13 +181,15 @@ export class ProfileComponent implements OnInit {
       next: (stats) => {
         this.statsData.set(stats);
       },
-      error: () => {
+      error: (err) => {
+        console.error('[ProfileComponent] Stats load error:', err);
+
         this.statsData.set({
-          totalStudyHours: 24.5,
-          roomsJoined: 12,
-          currentStreak: 5,
-          weeklyGoalHours: 20,
-          weeklyCompletedHours: 14.5
+          totalStudyHours: 0,
+          roomsJoined: 0,
+          currentStreak: 0,
+          weeklyGoalHours: this.profileData()?.weeklyStudyGoal || 20,
+          weeklyCompletedHours: 0
         });
       }
     });

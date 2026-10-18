@@ -1,5 +1,72 @@
 <div class="pomodoro">
 
+  <!-- ══════════════════════════════════════════════════════
+       PUBLIC STUDY SESSION (2-hour backend session)
+       Only shown for PUBLIC rooms when backend sends state
+  ══════════════════════════════════════════════════════ -->
+  @if (roomType === 'PUBLIC' && publicSessionVisible()) {
+    <div class="public-session" id="public-study-session">
+
+      <div class="public-session__header">
+        <span class="public-session__badge">🌐 PUBLIC STUDY SESSION</span>
+      </div>
+
+      <!-- Timer display -->
+      <div
+        class="public-session__timer"
+        [class.public-session__timer--expired]="publicSecondsLeft() <= 0"
+        [class.public-session__timer--ending]="publicSecondsLeft() > 0 && publicSecondsLeft() < 300"
+      >
+        {{ publicTimeLabel }}
+      </div>
+
+      <!-- Status -->
+      <div
+        class="public-session__status"
+        [class.public-session__status--active]="publicRunning() && publicSecondsLeft() > 0"
+        [class.public-session__status--expired]="publicSecondsLeft() <= 0"
+      >
+        {{ publicStatusLabel }}
+      </div>
+
+      <!-- Debug info -->
+      <details class="public-session__debug" id="public-session-debug">
+        <summary>🔍 Debug Info</summary>
+        <div class="public-session__debug-body">
+          <div class="debug-row">
+            <span class="debug-label">Remaining seconds:</span>
+            <span class="debug-value" id="debug-remaining-seconds">{{ publicSecondsLeft() }}</span>
+          </div>
+          <div class="debug-row">
+            <span class="debug-label">Started at:</span>
+            <span class="debug-value" id="debug-started-at">{{ publicStartedAt() ?? '—' }}</span>
+          </div>
+          <div class="debug-row">
+            <span class="debug-label">Running:</span>
+            <span class="debug-value" id="debug-running">{{ publicRunning() }}</span>
+          </div>
+          <div class="debug-row">
+            <span class="debug-label">Backend raw:</span>
+            <span class="debug-value" id="debug-raw-remaining">{{ publicRawRemaining() }}s</span>
+          </div>
+          <div class="debug-row">
+            <span class="debug-label">Room type:</span>
+            <span class="debug-value">{{ roomType }}</span>
+          </div>
+        </div>
+      </details>
+
+    </div>
+
+    <div class="public-session__divider">
+      <span>── Pomodoro Timer ──</span>
+    </div>
+  }
+
+  <!-- ══════════════════════════════════════════════════════
+       EXISTING POMODORO TIMER (unchanged)
+  ══════════════════════════════════════════════════════ -->
+
   <!-- Phase label -->
   <div class="pomodoro__phase" [class]="'pomodoro__phase--' + phase()">
     {{ phaseLabel }}

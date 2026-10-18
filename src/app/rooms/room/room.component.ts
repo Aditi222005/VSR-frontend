@@ -3,6 +3,7 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { WebSocketService } from '../../core/services/websocket/websocket.service';
 import { LiveKitService } from '../../core/services/livekit.service';
 import { ThemeService } from '../../core/services/theme.service';
@@ -15,6 +16,7 @@ import { ChatPanelComponent } from '../../shared/components/chat-panel/chat-pane
 import { PomodoroTimerComponent } from '../../shared/components/pomodoro-timer/pomodoro-timer.component';
 import { NotesPanelComponent } from '../../shared/components/notes-panel/notes-panel.component';
 import { RoomService } from '../../core/services/room.service';
+import { environment } from '../../../environments/environment';
 
 type SidebarTab = 'participants' | 'chat' | 'timer' | 'notes';
 
@@ -40,6 +42,7 @@ export class RoomComponent implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   public themeService = inject(ThemeService);
   private platformId = inject(PLATFORM_ID);
+  private http = inject(HttpClient);
   lk = inject(LiveKitService);
 
   @ViewChild('previewVideo') previewVideoEl?: ElementRef<HTMLVideoElement>;
@@ -47,6 +50,7 @@ export class RoomComponent implements OnInit, OnDestroy {
 
   roomId!: number;
   roomName = signal<string>('Live Study Room');
+  roomType = signal<string>('PUBLIC'); // default PUBLIC, updated from API
 
   // WebSocket signals
   wsParticipants = signal<Participant[]>([]);
@@ -89,20 +93,35 @@ export class RoomComponent implements OnInit, OnDestroy {
 
     const nav = this.router.getCurrentNavigation();
     const stateRoomName = nav?.extras?.state?.['roomName'];
-    if (stateRoomName) {
-      this.roomName.set(stateRoomName);
-    } else if (isPlatformBrowser(this.platformId)) {
-      this.roomService.joinRoom(this.roomId).subscribe({
-        next: (res) => {
-          if (res?.roomName) this.roomName.set(res.roomName);
-        },
-        error: () => { }
-      });
-    }
+    const stateRoomType = nav?.extras?.state?.['roomType'];
+
+    // Apply router state immediately (fast path – no HTTP round-trip needed)
+    if (stateRoomName) this.roomName.set(stateRoomName);
+    if (stateRoomType) this.roomType.set(stateRoomType);
 
     if (!isPlatformBrowser(this.platformId)) return;
 
+    // Fetch room details to confirm roomType (PUBLIC/PRIVATE) from the server
+    this.http.get<any>(`${environment.apiUrl}/rooms/${this.roomId}`).subscribe({
+      next: (room) => {
+        if (room?.name) this.roomName.set(room.name);
+        if (room?.roomName) this.roomName.set(room.roomName);
+        if (room?.roomType) this.roomType.set(room.roomType);
+      },
+      error: () => {
+        // Fallback: /rooms/:id may not exist – try joinRoom for room name only
+        if (!stateRoomName) {
+          this.roomService.joinRoom(this.roomId).subscribe({
+            next: (res) => { if (res?.roomName) this.roomName.set(res.roomName); },
+            error: () => { }
+          });
+        }
+      }
+    });
+
     this.ws.connect();
+
+
 
     // Seed the participant list immediately from REST API
     this.roomService.getRoomMembers(this.roomId).subscribe({
